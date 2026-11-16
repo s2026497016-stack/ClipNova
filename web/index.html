@@ -1964,7 +1964,6 @@ function drawLive() {
     <div class="card-head"><div><h2>Monitor a live stream</h2><p class="sub">Start recording from one of your creator workspaces. Add a channel in Creator Setup first.</p></div></div>
     ${S.creators.length ? `<div class="row" style="gap:10px;flex-wrap:wrap">
       <select class="input" id="monitorCreator" style="min-width:190px;flex:1"><option value="">Choose creator</option>${S.creators.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join("")}</select>
-      <select class="input" id="monitorChannel" style="min-width:190px;flex:1"><option value="">Creator's main channel</option></select>
       <button class="btn primary" data-act="startmonitor">${ic("radio")}Start monitoring</button></div>
       <p class="help" style="margin-top:10px">To add or change a channel, open that creator and choose Setup.</p>`
       : `<div class="empty"><b>Create a creator first</b><span>Live monitoring is linked to a creator so clips, settings and posting destinations stay organised.</span><button class="btn primary" data-act="newcreator">${ic("plusc")}New creator</button></div>`}
@@ -2399,12 +2398,12 @@ document.addEventListener("click", async e => {
   try {
     if (a === "go") { closePops(); return go(d.v, d.tab); }
     if (a === "startmonitor") {
-      const cid = $("#monitorCreator")?.value, channel = $("#monitorChannel")?.value || "";
+      const cid = $("#monitorCreator")?.value;
       if (!cid) return toast("Choose a creator first.", "bad");
       const c = S.creators.find(x => x.id === cid);
       if (!c || !c.channel) return toast("Add a channel in this creator's Setup first.", "bad");
       b.disabled = true;
-      try { const j = await send(`/api/creators/${encodeURIComponent(cid)}/live`, channel ? {channel} : {}); if (j?.id && !jobOf(j.id)) S.jobs.unshift(j); toast("Monitoring started. Clips will appear as they are made.", "ok"); await tick(); drawLive(); }
+      try { const j = await send(`/api/creators/${encodeURIComponent(cid)}/live`, {}); if (j?.id && !jobOf(j.id)) S.jobs.unshift(j); toast("Monitoring started. Clips will appear as they are made.", "ok"); await tick(); drawLive(); }
       finally { b.disabled = false; }
       return;
     }
