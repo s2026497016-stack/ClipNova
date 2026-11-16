@@ -189,7 +189,11 @@ def explain(e) -> str:
     if "404" in text or "not found" in low or "does not exist" in low or "unknown model" in low or "not_found" in low:
         return f"{label()} doesn't know the model \"{name}\". Open Settings, AI, press Find models and pick one from the list."
     if "401" in text or "403" in text or "api key" in low or "api_key" in low or "unauthorized" in low or "permission" in low:
-        return f"{label()} refused the key. Paste a working key under Settings, AI."
+        # Keep Google's actual, key-redacted response visible. The old generic message hid
+        # whether the key was invalid, the API was disabled, or the key had API restrictions.
+        detail = text.partition(" ")[2].strip()[:260]
+        detail = re.sub(r"(?i)(key|api_key)[\\s:=\\"']+[^,}\\s\\"']+", r"\\1=<redacted>", detail)
+        return f"{label()} rejected the request ({text.split(' ', 1)[0]}): {detail or 'authentication or permission failure'}. Check the key and its Google Cloud API restrictions."
     if "429" in text or "quota" in low or "rate limit" in low or "exhausted" in low:
         return f"{label()} says the key has hit its limit or has no credit left. Check the account with {label()}, or try again later."
     if "connect" in low or "timed out" in low or "timeout" in low or "getaddrinfo" in low or "refused" in low:
