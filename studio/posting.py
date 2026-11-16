@@ -69,7 +69,10 @@ def enqueue(job, clip, account_ids, now=False, metadata=None) -> list:
             due = time.time() if now else _next_slot(aid, c["post_gap_min"], c["daily_cap"])
             p = {"id": secrets.token_hex(8), "user": ctx.uid(), "job": job["id"], "clip": clip["id"], "creator": job["creator"],
                  "account": aid, "account_name": acc["name"], "platform": acc["platform"], "status": "scheduled",
-                 "due_at": due, "created": time.time(), "title": clip.get("title") or clip.get("hook") or "Clip",
+                 "due_at": due, "created": time.time(), "title": str(metadata.get("title") or clip.get("title") or clip.get("hook") or "Clip")[:100],
+                  "description": str(metadata.get("description") if metadata.get("description") is not None else clip.get("description") or "")[:4900],
+                  "hashtags": [str(x).lstrip("#")[:50] for x in (metadata.get("hashtags") if isinstance(metadata.get("hashtags"), list) else clip.get("hashtags", []))][:30],
+                  "privacy": metadata.get("privacy") if metadata.get("privacy") in ("public", "unlisted", "private") else c.get("privacy", "public"),
                  "score": clip.get("score", 0), "tries": 0, "url": "", "remote_id": "", "error": None, "views": None}
             _posts.append(p)
             made.append(p)
