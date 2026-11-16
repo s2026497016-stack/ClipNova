@@ -107,6 +107,9 @@ with ctx.as_user(u1.id):
     import numpy as np
     clips, info = brain.find_clips(words, np.zeros(60), 60.0, title="T", uploader="U")
     check("clips come back through the whole path", len(clips) == 1 and clips[0]["hook"] == "WOW" and info["model"] == "model-a", str((clips, info)))
+check("gameplay highlight guidance stays grounded in evidence",
+      "loud reaction alone is not proof" in brain.HEAD.lower()
+      and "never infer a specific on-screen event" in brain.TRANSCRIPT_JUDGE.lower())
     s = usage.summary({})
     check("the call is in this user's usage", s["calls_total"] == 1 and s["tokens_total"] == 130 and s["recent"][0]["where"] == "A test video", str(s))
     check("usage says which AI is set", s["ready"] and s["provider"] == "Gemini" and s["model"] == "model-a")
