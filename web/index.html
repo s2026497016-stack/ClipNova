@@ -1957,16 +1957,16 @@ function drawLog() {
 async function loadOverview() { try { S.overview = await api("/api/overview"); } catch { return; } drawOverview(); }
 function liveEmbed(j) {
   const meta = j.live_meta || {}, url = j.source?.url || "";
-  const platform = String(meta.platform || (/youtube|youtu\\.be/i.test(url) ? "YouTube" : /twitch/i.test(url) ? "Twitch" : /kick/i.test(url) ? "Kick" : "")).toLowerCase();
+  const platform = String(meta.platform || (/youtube|youtu\.be/i.test(url) ? "YouTube" : /twitch/i.test(url) ? "Twitch" : /kick/i.test(url) ? "Kick" : "")).toLowerCase();
   let id = meta.video_id || "";
   if (platform === "youtube" && !id) {
     try {
       const u = new URL(url);
       id = u.hostname.includes("youtu.be") ? u.pathname.slice(1).split("/")[0] :
-        (u.searchParams.get("v") || (u.pathname.match(/\\/(?:live|shorts|embed)\\/([\\w-]{11})/) || [])[1] || "");
+        (u.searchParams.get("v") || (u.pathname.match(/\/(?:live|shorts|embed)\/([\w-]{11})/) || [])[1] || "");
     } catch {}
   }
-  if (platform === "youtube" && /^[\\w-]{11}$/.test(id)) return {src:`https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?autoplay=0&rel=0`,label:"YouTube"};
+  if (platform === "youtube" && /^[\w-]{11}$/.test(id)) return {src:`https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?autoplay=0&rel=0`,label:"YouTube"};
   const path = (() => { try { return new URL(url).pathname.split("/").filter(Boolean)[0] || ""; } catch { return ""; } })();
   if (platform === "twitch" && /^[a-z0-9_]{2,40}$/i.test(path)) return {src:`https://player.twitch.tv/?channel=${encodeURIComponent(path)}&parent=${encodeURIComponent(location.hostname)}&muted=true`,label:"Twitch"};
   if (platform === "kick" && /^[a-z0-9_-]{2,40}$/i.test(path)) return {src:`https://player.kick.com/${encodeURIComponent(path)}?muted=true`,label:"Kick"};
