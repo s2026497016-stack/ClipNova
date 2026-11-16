@@ -27,7 +27,7 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 Copy-Item .env.example .env
-python -m studio
+python -m studio.server
 ```
 
 Open the local address printed by the application. Configure an AI provider and key in the app settings to enable AI-assisted moment selection and text generation. Without a configured provider, only the fallback capabilities supported by the app are available.
