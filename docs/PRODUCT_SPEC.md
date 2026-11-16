@@ -73,7 +73,7 @@ Build one reliable video-creation workspace that takes a creator from source med
 ### Working in the imported application
 - [x] Local video upload, chunked uploads, source URL intake and media metadata.
 - [x] Transcript/audio-based highlight selection, with an AI provider configured or a loudness-based fallback.
-- [x] Vertical MP4 rendering with animated word captions, hook text, caption styles and background/zoom/centre-crop layouts.
+- [x] Vertical MP4 rendering with animated word captions, hook text, caption styles, background/zoom/centre-crop layouts and experimental smart face framing.
 - [x] Clip review, manual in/out adjustments, title/hook edits and re-rendering.
 - [x] Supported YouTube, Twitch and Kick source workflows, including rolling live-stream capture where the provider permits access.
 - [x] Project/creator history, accounts, storage controls, job queues and supported social-account publishing flows.
@@ -84,7 +84,7 @@ Build one reliable video-creation workspace that takes a creator from source med
 ### Known gaps — do not describe these as finished
 - [ ] Gaming event recognition is not computer vision: current highlight selection uses transcript, audio loudness and available live-chat signals. It does not reliably identify kills, wins, headshots or game HUD events from pixels.
 - [ ] The current editor is a clip-review and re-render workflow, not a multi-track nonlinear editor with keyframes.
-- [ ] Smart face/person tracking and automatic speaker-aware reframing are not verified; current output layouts are blur, zoom and centre crop.
+- [ ] Smart face tracking now samples and smooths a dominant face position over time, but needs real-footage quality testing; it does not yet track identity through occlusion or support multiple people. Automatic speaker-aware reframing is not implemented.
 - [ ] Cloud-hosted projects and cross-device sync require a configured deployment/storage architecture; local data is not automatically synced between devices.
 - [ ] Live clipping latency and provider reliability still need real stream tests with authorized channels.
 - [ ] Social publishing needs valid provider credentials and must be tested against each platform's current API permissions.
@@ -107,4 +107,4 @@ The source import and rebrand are committed. The first automated test run is in 
 
 ## Smart face framing update
 
-The layout selector now includes **Smart face framing**. For landscape footage, ClipNova samples frames across each selected clip with OpenCV's bundled frontal-face detector, estimates the dominant face's average horizontal position, and places the 9:16 crop around that person. If no face is found, the video is portrait/square, or detection cannot run, rendering safely falls back to the existing centre crop. This is face-aware framing, not continuous multi-person tracking; a future tracking implementation still needs temporal target selection and motion smoothing.
+The layout selector now includes **Smart face framing**. For landscape footage, ClipNova samples up to 25 frames across each selected clip with OpenCV's bundled frontal-face detector. It smooths the detected horizontal face positions and generates a time-based FFmpeg crop expression, so the 9:16 window can move as the person moves. If no face is found, the video is portrait/square, or detection cannot run, rendering safely falls back to the existing centre crop. This is single-dominant-face tracking; identity persistence through occlusion and multi-person selection still need a dedicated tracker and real-footage validation.
