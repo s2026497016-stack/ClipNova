@@ -6,7 +6,7 @@ from pathlib import Path
 
 import json
 
-from . import accounts, alerts, config, creators, ctx, jobs, live
+from . import accounts, alerts, auth, config, creators, ctx, jobs, live
 
 _lock = threading.RLock()
 _FILE = config.DATA_DIR / "posts.json"
@@ -82,16 +82,61 @@ def enqueue(job, clip, account_ids, now=False, metadata=None) -> list:
     return made
 
 
+def _away(uid: str) -> bool:
+    """Manual Away Mode wins; otherwise use the account's last dashboard/API activity."""
+    if accounts.settings().get("away_mode"):
+        return True
+    user = auth.get_user(uid)
+    last_seen = float(getattr(user, "last_seen", 0) or 0) if user else 0.0
+    return time.time() - last_seen >= 24 * 3600
+
+
+def _regular_backlog(creator_id: str, account_ids: list, minimum_score: int) -> list:
+    """Finished, worthwhile regular clips not already scheduled or published to these accounts."""
+    existing = {(p["job"], p["clip"], p["account"]) for p in _mine()
+                if p.get("status") in OPEN + ("posted",)}
+    candidates = []
+    for job in jobs.list_jobs():
+        if job.get("creator") != creator_id:
+            continue
+        for clip in job.get("clips", []):
+            if clip.get("status") != "done":
+                continue
+            tier = clip.get("tier")
+            if tier is None:
+                tier = "top_pick" if float(clip.get("score", 0) or 0) >= 85 else "regular"
+            if tier != "regular" or float(clip.get("score", 0) or 0) < minimum_score:
+                continue
+            if all((job["id"], clip["id"], aid) in existing for aid in account_ids):
+                continue
+            candidates.append((float(clip.get("score", 0) or 0), job, clip))
+    return sorted(candidates, key=lambda x: x[0], reverse=True)
+
+
 def on_clip_ready(job, clip):
-    """Called once when a clip first finishes rendering."""
+    """Top Picks publish automatically; Regular clips only publish during Away Mode with a backlog."""
     c = creators.get(job["creator"])
     if not c or not c["autopost"] or not c["accounts"]:
         return
-    if clip.get("score", 0) < c["post_min_score"]:
-        return  # includes hand-made clips (score 0): those wait for you to press Post
-    made = enqueue(job, clip, c["accounts"])
+    tier = clip.get("tier")
+    if tier is None:
+        tier = "top_pick" if float(clip.get("score", 0) or 0) >= 85 else "regular"
+    score = float(clip.get("score", 0) or 0)
+    if tier == "top_pick":
+        made = enqueue(job, clip, c["accounts"])
+    else:
+        if score < c["post_min_score"] or not _away(ctx.uid()):
+            return
+        backlog = _regular_backlog(c["id"], c["accounts"], c["post_min_score"])
+        # Ten or more unposted Regular clips means the queue has become a backlog.
+        if len(backlog) < 10:
+            return
+        # Schedule only worthwhile clips; the account's normal daily cap and spacing still apply.
+        made = []
+        for _score, candidate_job, candidate_clip in backlog:
+            made.extend(enqueue(candidate_job, candidate_clip, c["accounts"]))
     if made:
-        creators.log(c["id"], f"Queued for {len(made)} account(s): {clip.get('title') or clip.get('hook')}")
+        creators.log(c["id"], f"Smart publishing queued {len(made)} post(s): {clip.get('title') or clip.get('hook')}")
 
 
 def _caption(clip, creator):
