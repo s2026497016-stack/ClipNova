@@ -227,56 +227,92 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     return head + "\n".join(ev) + "\n"
 
 
-def _face_center(src: Path, start: float, end: float, src_w: int, src_h: int):
-    """Find the dominant face centre in a short clip sample; return a source-width fraction or None."""
+def _face_track(src: Path, start: float, end: float, src_w: int, src_h: int):
+    """Return smoothed (clip-relative seconds, horizontal face-centre fraction) samples."""
     if src_w / max(1, src_h) <= W / H:
-        return None
+        return []
     cap = None
     try:
         import cv2
         cap = cv2.VideoCapture(str(src))
         if not cap.isOpened():
-            return None
+            return []
         cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
         if cascade.empty():
-            return None
+            return []
         duration = max(0.0, end - start)
-        step = max(0.5, duration / 8)
-        detections = []
-        at = 0.0
-        while at <= duration:
+        # A bounded sample count keeps render preparation predictable on long clips.
+        count = min(25, max(3, int(duration / 0.6) + 1))
+        step = duration / max(1, count - 1)
+        samples = []
+        for i in range(count):
+            at = min(duration, i * step)
             cap.set(cv2.CAP_PROP_POS_MSEC, (start + at) * 1000)
             ok, frame = cap.read()
-            if ok and frame is not None:
-                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-                faces = cascade.detectMultiScale(gray, scaleFactor=1.12, minNeighbors=5, minSize=(40, 40))
-                if len(faces):
-                    x, y, w, h = max(faces, key=lambda box: box[2] * box[3])
-                    detections.append((x + w / 2) / max(1, frame.shape[1]))
-            at += step
-        return max(0.0, min(1.0, sum(detections) / len(detections))) if detections else None
+            if not ok or frame is None:
+                continue
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            faces = cascade.detectMultiScale(gray, scaleFactor=1.12, minNeighbors=5, minSize=(40, 40))
+            if len(faces):
+                x, y, w, h = max(faces, key=lambda box: box[2] * box[3])
+                samples.append((at, max(0.0, min(1.0, (x + w / 2) / max(1, frame.shape[1])))))
+        if not samples:
+            return []
+        # Exponential smoothing damps detector jitter without freezing movement.
+        smoothed = []
+        value = samples[0][1]
+        smoothed.append((samples[0][0], value))
+        for at, detected in samples[1:]:
+            value = 0.65 * value + 0.35 * detected
+            smoothed.append((at, value))
+        return smoothed
     except Exception:
-        return None
+        return []
     finally:
         if cap is not None:
             cap.release()
 
 
-def _smart_crop_filter(face_x, src_w, src_h):
-    """Build a centre-safe crop expression, positioning the 9:16 window around the detected face."""
-    crop_w = src_h * W / H
-    left = max(0.0, min(src_w - crop_w, face_x * src_w - crop_w / 2))
-    fraction = left / max(1.0, src_w - crop_w)
-    return (f"[0:v]fps={config.OUT_FPS},scale={W}:{H}:force_original_aspect_ratio=increase,"
-            f"crop={W}:{H}:x='min(max((iw-ow)*{fraction:.6f},0),iw-ow)':"
-            f"y=(ih-oh)/2,setsar=1[v0];")
+def _face_center(src: Path, start: float, end: float, src_w: int, src_h: int):
+    """Compatibility helper: return the mean detected face centre, or None."""
+    track = _face_track(src, start, end, src_w, src_h) if src else []
+    return sum(x for _, x in track) / len(track) if track else None
 
+
+def _track_expression(track):
+    """Build a bounded, piecewise-linear FFmpeg crop-position expression from clip-relative samples."""
+    if not track:
+        return "0.5"
+    points = [(max(0.0, float(t)), max(0.0, min(1.0, float(x)))) for t, x in track]
+    points.sort(key=lambda p: p[0])
+    if len(points) == 1:
+        return f"{points[0][1]:.6f}"
+    expr = f"{points[-1][1]:.6f}"
+    for (t0, x0), (t1, x1) in reversed(list(zip(points, points[1:]))):
+        if t1 <= t0:
+            continue
+        # FFmpeg filter commas are escaped so the commas remain inside the crop expression.
+        between = f"({x0:.6f}+({x1 - x0:.6f})*(t-{t0:.4f})/{t1 - t0:.4f})"
+        expr = f"if(lt(t\\,{t1:.4f})\\,{between}\\,{expr})"
+    return expr
+
+
+def _smart_crop_filter(face_x, src_w, src_h):
+    """Build a centre-safe 9:16 crop; face_x may be one fraction or a temporal tracking list."""
+    crop_w = src_h * W / H
+    if isinstance(face_x, (list, tuple)):
+        position = _track_expression(face_x)
+    else:
+        position = f"{max(0.0, min(1.0, float(face_x))):.6f}"
+    return (f"[0:v]fps={config.OUT_FPS},scale={W}:{H}:force_original_aspect_ratio=increase,"
+            f"crop={W}:{H}:x='min(max((iw-ow)*{position},0),iw-ow)':"
+            f"y=(ih-oh)/2,setsar=1[v0];")
 
 def _filter(layout, fg_h, src=None, start=0, end=0, src_w=W, src_h=H):
     if layout == "smart":
-        face_x = _face_center(src, start, end, src_w, src_h) if src else None
-        if face_x is not None:
-            return _smart_crop_filter(face_x, src_w, src_h)
+        face_track = _face_track(src, start, end, src_w, src_h) if src else []
+        if face_track:
+            return _smart_crop_filter(face_track, src_w, src_h)
         layout = "crop"
     if layout == "crop":
         return f"[0:v]fps={config.OUT_FPS},scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},setsar=1[v0];"
