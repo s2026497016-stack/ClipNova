@@ -68,12 +68,24 @@ Build one reliable video-creation workspace that takes a creator from source med
 - Tests cover permissions, job lifecycle, source validation, media cleanup, and exports.
 - All user-visible controls must work; unavailable integrations must be marked as planned or disabled.
 
+## Current implementation status
+
+- [x] Imported the 89-file application foundation, including backend, web UI, tests, fonts, demo media and deployment assets.
+- [x] Preserved the upstream MIT license file and its copyright notice.
+- [x] Rebranded the main app pages, email templates, logos, configuration names, deployment files and repository links as ClipNova.
+- [x] Removed the upstream maker's Instagram promotion and replaced the repository link with the ClipNova repository.
+- [x] Added a GitHub Actions workflow to run the isolated regression suite.
+- [ ] Confirm the first CI run passes; fix any regressions introduced during import/rebranding.
+- [ ] Review the user's demo video and map its exact interface and interactions into the product.
+ 
 ## Delivery order
 
-1. Import and audit the existing licensed codebase; preserve its license notices.
-2. Rebrand product identifiers, environment variables, docs, UI copy, and links.
-3. Verify the baseline app and its existing tests before changing core media logic.
-4. Improve dashboard and project workflow.
-5. Add/verify import, clip review, captions, reframing, and export.
-6. Strengthen live workflows and gaming-specific detection.
-7. Add publishing integrations and end-to-end regression coverage.
+1. **Foundation:** import, rebrand and run regression tests.
+2. **Core workflow:** polish dashboard, media intake, clip review and project library.
+3. **Editing:** timeline controls, reframing, captions, title/hook editing and export.
+4. **Livestream:** verify provider connections, rolling capture, queue stability and latency.
+5. **Gaming:** add game-aware event detection where a suitable event signal/model exists.
+6. **Publishing:** validate provider integrations, review/approval and scheduled publishing.
+7. **Release:** end-to-end tests, deployment, backups, security review and user documentation.
+
+The source import and rebrand are committed. The first automated test run is in progress; features are not marked complete until their real workflows have been verified.
