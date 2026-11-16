@@ -1955,26 +1955,42 @@ function drawLog() {
 
 /* ============================================================ overview */
 async function loadOverview() { try { S.overview = await api("/api/overview"); } catch { return; } drawOverview(); }
+function liveEmbed(j) {
+  const meta = j.live_meta || {}, url = j.source?.url || "";
+  const platform = String(meta.platform || (/youtube|youtu\.be/i.test(url) ? "YouTube" : /twitch/i.test(url) ? "Twitch" : /kick/i.test(url) ? "Kick" : "")).toLowerCase();
+  const id = meta.video_id || "";
+  if (platform === "youtube" && /^[\w-]{11}$/.test(id)) return {src:`https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?autoplay=0&rel=0`,label:"YouTube"};
+  const path = (() => { try { return new URL(url).pathname.split("/").filter(Boolean)[0] || ""; } catch { return ""; } })();
+  if (platform === "twitch" && /^[a-z0-9_]{2,40}$/i.test(path)) return {src:`https://player.twitch.tv/?channel=${encodeURIComponent(path)}&parent=${encodeURIComponent(location.hostname)}&muted=true`,label:"Twitch"};
+  if (platform === "kick" && /^[a-z0-9_-]{2,40}$/i.test(path)) return {src:`https://player.kick.com/${encodeURIComponent(path)}?muted=true`,label:"Kick"};
+  return null;
+}
 function drawLive() {
   const box = $("#livepage"); if (!box) return;
   const liveJobs = S.jobs.filter(j => j.kind === "live");
-  const active = liveJobs.filter(j => j.status === "live");
-  const recent = liveJobs.filter(j => j.status !== "live").slice(0, 8);
+  const active = liveJobs.filter(j => j.status === "live" || j.status === "running");
+  const recent = liveJobs.filter(j => !active.includes(j)).slice(0, 8);
   box.innerHTML = `<section class="card">
-    <div class="card-head"><div><h2>Monitor a live stream</h2><p class="sub">Start recording from one of your creator workspaces. Add a channel in Creator Setup first.</p></div></div>
+    <div class="card-head"><div><h2>Monitor a live stream</h2><p class="sub">Start recording a creator's live channel. ClipNova checks the stream and starts building clips from the recording.</p></div></div>
     ${S.creators.length ? `<div class="row" style="gap:10px;flex-wrap:wrap">
       <select class="input" id="monitorCreator" style="min-width:190px;flex:1"><option value="">Choose creator</option>${S.creators.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join("")}</select>
       <button class="btn primary" data-act="startmonitor">${ic("radio")}Start monitoring</button></div>
-      <p class="help" style="margin-top:10px">To add or change a channel, open that creator and choose Setup.</p>`
+      <p class="help" style="margin-top:10px">Add a YouTube, Twitch or Kick channel in that creator's Setup. A stream must actually be live to play here.</p>`
       : `<div class="empty"><b>Create a creator first</b><span>Live monitoring is linked to a creator so clips, settings and posting destinations stay organised.</span><button class="btn primary" data-act="newcreator">${ic("plusc")}New creator</button></div>`}
     </section>
-    <section class="card"><div class="card-head"><div><h2>Currently monitored</h2><p class="sub">${active.length} active stream${active.length === 1 ? "" : "s"}</p></div><span class="pill ${active.length ? "live" : ""}">${active.length ? "Monitoring" : "Idle"}</span></div>
-      ${active.length ? active.map(j => `<div class="livecard" style="padding:14px;border:1px solid var(--line);border-radius:12px;margin:10px 0">
-        <div class="row" style="justify-content:space-between;gap:12px"><div><b>${esc(j.title || j.name || "Live stream")}</b><div class="sub">${esc(j.uploader || j.source?.url || "")} · ${esc(j.stage || "Recording")}</div></div><span class="pill live">Live</span></div>
-        <div class="row" style="margin-top:12px"><button class="btn" data-act="clipnow" data-j="${esc(j.id)}" data-s="30">${ic("scissors")}Clip last 30 seconds</button><button class="btn danger" data-act="stoplive" data-j="${esc(j.id)}">${ic("stop")}Stop monitoring</button></div>
-      </div>`).join("") : `<div class="empty"><b>No streams being monitored</b><span>Choose a creator above and start monitoring their channel.</span></div>`}
+    <section class="card"><div class="card-head"><div><h2>Currently monitored</h2><p class="sub">${active.length} recording session${active.length === 1 ? "" : "s"}</p></div><span class="pill ${active.length ? "live" : ""}">${active.length ? "Monitoring" : "Idle"}</span></div>
+      ${active.length ? active.map(j => {
+        const player = liveEmbed(j), meta = j.live_meta || {}, title = meta.title || j.title || j.name || "Live stream";
+        const state = /connect|start/i.test(j.stage || "") && !(j.duration > 0) ? "Connecting to stream" : j.duration > 0 ? "Recording live video" : (j.stage || "Checking stream");
+        const viewers = Number.isFinite(Number(meta.viewers)) && meta.viewers !== null && meta.viewers !== "" ? Number(meta.viewers).toLocaleString() : "";
+        return `<div class="livecard" style="padding:14px;border:1px solid var(--line);border-radius:12px;margin:10px 0">
+          <div class="row" style="justify-content:space-between;gap:12px;margin-bottom:12px"><div><b>${esc(title)}</b><div class="sub">${esc(meta.uploader || j.uploader || j.source?.url || "")} · ${esc(state)}</div></div><span class="pill live"><span class="dot"></span>Recording</span></div>
+          ${player ? `<div class="stream" style="margin:0 0 12px;grid-template-columns:1fr"><div class="player"><iframe src="${esc(player.src)}" title="${esc(player.label)} live stream" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe></div><div class="sinfo" style="padding:4px 2px"><div class="row"><span class="pill">${esc(player.label)}</span>${viewers ? `<span class="sub">${viewers} watching</span>` : ""}</div><div class="sub">If the player is blank, the platform may block embedding or the broadcast may have ended.</div></div></div>` : `<div class="empty" style="padding:24px"><b>Stream preview not available yet</b><span>${meta.error ? esc(meta.error) : "ClipNova is still resolving the live broadcast. The player will appear when the platform returns a playable stream ID."}</span><a class="btn sm" href="${esc(j.source?.url || "#")}" target="_blank" rel="noopener">Open channel ${ic("upright")}</a></div>`}
+          <div class="row" style="margin-top:12px"><button class="btn" data-act="clipnow" data-j="${esc(j.id)}" data-s="30" ${j.duration > 0 ? "" : "disabled"}>${ic("scissors")}Clip last 30 seconds</button><button class="btn danger" data-act="stoplive" data-j="${esc(j.id)}">${ic("stop")}Stop recording</button></div>
+        </div>`;
+      }).join("") : `<div class="empty"><b>No streams being monitored</b><span>Choose a creator above and start monitoring their channel.</span></div>`}
     </section>
-    ${recent.length ? `<section class="card"><div class="card-head"><div><h2>Recent sessions</h2><p class="sub">Previous live recordings</p></div></div>${recent.map(j => `<div class="row" style="justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)"><div><b>${esc(j.title || j.name || "Live session")}</b><div class="sub">${esc(j.stage || j.status)} · ${(j.clips || []).filter(c => c.status === "done").length} clips</div></div><span class="pill ${j.status === "error" ? "bad" : ""}">${esc(j.status)}</span></div>`).join("")}</section>` : ""}`;
+    ${recent.length ? `<section class="card"><div class="card-head"><div><h2>Recent sessions</h2><p class="sub">Previous live recordings and connection results</p></div></div>${recent.map(j => `<div class="row" style="justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)"><div><b>${esc(j.title || j.name || "Live session")}</b><div class="sub">${esc(j.stage || j.status)} · ${(j.clips || []).filter(c => c.status === "done").length} clips ${j.error ? " · " + esc(j.error) : ""}</div></div><span class="pill ${j.status === "error" ? "bad" : ""}">${esc(j.status)}</span></div>`).join("")}</section>` : ""}`;
 }
 function drawSocial() {
   const box = $("#socialpage"); if (!box) return;

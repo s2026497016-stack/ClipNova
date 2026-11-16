@@ -66,8 +66,17 @@ def resolve(url: str) -> dict:
     title = info.get("title") or ""
     if "(live)" in title and info.get("description"):  # Twitch puts the real stream title here
         title = str(info["description"]).splitlines()[0][:120]
+    url_host = self_host = ""
+    try:
+        from urllib.parse import urlparse
+        url_host = (urlparse(url).hostname or "").lower()
+    except Exception:
+        pass
+    platform = "YouTube" if media.is_youtube(url) else "Twitch" if "twitch" in url_host else "Kick" if "kick" in url_host else ""
     return {"urls": [f["url"] for f in fmts], "title": title,
-            "uploader": info.get("uploader") or info.get("channel") or ""}
+            "uploader": info.get("uploader") or info.get("channel") or "",
+            "video_id": info.get("id") or "", "thumbnail": info.get("thumbnail") or "",
+            "viewers": info.get("concurrent_view_count"), "platform": platform}
 
 
 def active():
@@ -171,8 +180,12 @@ class Session:
                     break
                 self.stop_flag.wait(10)
                 continue
-            if not self.job.get("uploader"):
-                self.job.update(title=info["title"], uploader=info["uploader"])
+            self.job.update(title=info["title"] or self.job.get("title") or "",
+                            uploader=info["uploader"] or self.job.get("uploader") or "",
+                            live_meta={"title": info["title"], "uploader": info["uploader"],
+                                       "video_id": info.get("video_id", ""), "thumbnail": info.get("thumbnail", ""),
+                                       "viewers": info.get("viewers"), "platform": info.get("platform", "")})
+            jobs.save(self.job)
             self.part += 1
             with self.lock:
                 self.seg_clock = max(self.seg_clock, self.samples / SR)
