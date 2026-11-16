@@ -2423,7 +2423,7 @@ document.addEventListener("change", async e => {
   if (t.name === "mainch") return;  // saved by its own click handler
   if (t.closest("#cform") && t.type === "radio") { $$("#cform .plan").forEach(l => l.classList.toggle("on", l.contains(t))); return saveCreator(true); }
   if (!t.closest("#cform") || t.type !== "checkbox") return;
-  if (t.dataset.k === "autopost" && t.checked && !await ask("Turn on auto-posting?", "Clips that score high enough will be posted to the ticked accounts without you seeing them first.", "Turn on")) { t.checked = false; return; }
+  if (t.dataset.k === "autopost" && t.checked && !await ask("Turn on smart auto-publishing?", "Top Picks will publish automatically. If you're away and 10 or more worthwhile Regular clips accumulate, AI can publish the strongest ones too. Your daily limits and post spacing still apply.", "Turn on")) { t.checked = false; return; }
   saveCreator(true);
 });
 
