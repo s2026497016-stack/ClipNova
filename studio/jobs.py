@@ -568,25 +568,16 @@ def _run_job(job):
                 vstate["path"] = path
             return vstate["path"]
 
-    exact = {}      # clip id -> (from, to, words): our own model's words for just that clip
-
     began = {}      # clip id -> when work on it started
 
     def make(clip, words_now):
         began[clip["id"]] = time.time()
         if src["type"] == "url" and (pieces or not whole_video()):
             _fetch_piece(job, clip, audio)
-        if clip["status"] != "error" and yt and yt[1].lower().startswith("en"):
-            # The clip was found with YouTube's transcript. What is shown on screen comes from our own model,
-            # run on just this clip: full punctuation, nothing blanked out, timings to the word.
-            a0, b0 = max(lo, int((clip["start"] - 1.5) * 16000)), min(hi, int((clip["end"] + 1.5) * 16000))
-            try:
-                tw = [dict(w, s=round(w["s"] + a0 / 16000, 2), e=round(w["e"] + a0 / 16000, 2)) for w in transcribe.transcribe(audio[a0:b0])]
-            except Exception:  # noqa: BLE001 - the clip is still made, with YouTube's words
-                tw = []
-            if len(tw) >= 3:
-                exact[clip["id"]] = (a0 / 16000, b0 / 16000, tw)
-                words_now = tw
+        # When YouTube supplied a complete English word-level transcript, reuse it for captions.
+        # Re-transcribing every selected clip locally added another full ASR pass per clip and delayed
+        # the first finished clip without improving highlight selection. Caption cleanup still runs in
+        # render_one; uploaded files and videos without usable YouTube captions keep local ASR.
         if clip["status"] != "error":
             render_one(job, clip, words_now)
 
@@ -680,11 +671,6 @@ def _run_job(job):
     if futures:
         _set(job, stage="Finishing the clips", progress=max(job["progress"], 0.92))
     _wait_for_clips(job, futures, began, renders._max_workers)
-    if exact:           # keep our own words for the clips in the saved transcript, so editing a clip later uses them
-        for a_s, b_s, tw in exact.values():
-            words = [w for w in words if not a_s <= w["s"] < b_s] + tw
-        words.sort(key=lambda w: w["s"])
-        (d / "words.json").write_text(json.dumps(words), encoding="utf-8")
     renders.shutdown(wait=False)
     ahead.shutdown(wait=False)
     fetch.shutdown(wait=False)
