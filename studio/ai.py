@@ -192,7 +192,6 @@ def explain(e) -> str:
         # Keep Google's actual, key-redacted response visible. The old generic message hid
         # whether the key was invalid, the API was disabled, or the key had API restrictions.
         detail = text.partition(" ")[2].strip()[:260]
-        detail = re.sub(r"(?i)(key|api_key)[\\s:=\\"']+[^,}\\s\\"']+", r"\\1=<redacted>", detail)
         return f"{label()} rejected the request ({text.split(' ', 1)[0]}): {detail or 'authentication or permission failure'}. Check the key and its Google Cloud API restrictions."
     if "429" in text or "quota" in low or "rate limit" in low or "exhausted" in low:
         return f"{label()} says the key has hit its limit or has no credit left. Check the account with {label()}, or try again later."
