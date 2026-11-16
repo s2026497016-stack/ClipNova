@@ -2417,7 +2417,7 @@ document.addEventListener("click", async e => {
         const row = input.closest("[data-pub-row]");
         const title = row?.querySelector("[data-pub-title]")?.value || "Clip";
         const description = row?.querySelector("[data-pub-description]")?.value || "";
-        const hashtags = (row?.querySelector("[data-pub-hashtags]")?.value || "").split(/[\\s,]+/).map(x=>x.replace(/^#/,"")).filter(Boolean).slice(0,30);
+        const hashtags = (row?.querySelector("[data-pub-hashtags]")?.value || "").split(/[\s,]+/).map(x=>x.replace(/^#/,"")).filter(Boolean).slice(0,30);
         const result = await send("/api/posts", {job:jid, clip:cid, accounts:accountIds, title, description, hashtags, privacy:$("#pubPrivacy")?.value || "public"});
         queued += result.queued || 0;
       }
