@@ -15,8 +15,8 @@ def _root() -> Path:
 _lock = threading.RLock()
 
 DEFAULTS = {"name": "", "channel": "", "style": "bounce", "layout": "blur", "min_len": 15, "max_len": 60,
-            "max_clips": 6, "min_score": 80, "auto_watch": False, "buffer_min": 20, "live_per_hour": 4, "ai_every_min": 3, "ai_only_on_spike": True, "auto_jump_pct": 60,
-            "plan": "free", "decide_mode": "both", "must_clip_min": 0, "min_gap_min": 2,
+            "max_clips": 6, "min_score": 55, "auto_watch": False, "buffer_min": 20, "live_per_hour": 16, "ai_every_min": 2, "ai_only_on_spike": True, "auto_jump_pct": 60,
+            "plan": "free", "decide_mode": "both", "must_clip_min": 0, "min_gap_min": 1,
             "trigger_words": "clip that, clip it",
             "autopost": False, "accounts": [], "post_min_score": 75, "post_gap_min": 45, "daily_cap": 6,
             "privacy": "public", "post_footer": "", "rate_per_1k": 0.0, "channels": {}}
@@ -39,6 +39,12 @@ def _fix(c: dict) -> dict:
         c["ai_every_min"] = 3       # "Auto" (0) is gone: jumps in loudness and chat are now always checked
     if c.get("channel") not in ch.values():
         c["channel"] = next((ch[k] for k in PLATFORMS if k in ch), "")
+    # Migrate creators that still have the original untouched live defaults.
+    if not c.get("live_split_version"):
+        if (c.get("live_per_hour") == 4 and c.get("min_score") == 80
+                and c.get("min_gap_min") == 2 and c.get("ai_every_min") == 3):
+            c.update(live_per_hour=16, min_score=55, min_gap_min=1, ai_every_min=2)
+        c["live_split_version"] = 1
     return c
 NUMERIC = {"min_len": (5, 120), "max_len": (10, 180), "max_clips": (1, 20), "min_score": (0, 100), "buffer_min": (5, 120), "live_per_hour": (1, 60), "ai_every_min": (1, 30), "auto_jump_pct": (20, 300), "must_clip_min": (0, 240), "min_gap_min": (0, 60),
            "post_min_score": (0, 100), "post_gap_min": (5, 1440), "daily_cap": (1, 50)}
