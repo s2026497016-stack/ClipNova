@@ -285,7 +285,7 @@ def overview() -> dict:
             posted[_day(p["posted_at"])] += 1
             views[_day(p["posted_at"])] += p["views"] or 0
     daily = [{"day": d, "clips": made[d], "posted": posted[d], "views": views[d]} for d in days]
-    return {"paused": accounts.settings()["paused"], "creators": rows, "posts": show, "daily": daily,
+    return {"paused": accounts.settings()["paused"], "away_mode": accounts.settings().get("away_mode", False), "away": _away(ctx.uid()), "creators": rows, "posts": show, "daily": daily,
             "alerts": alerts.configured(), "recording": len(live.active_mine())}
 
 
