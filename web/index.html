@@ -1957,9 +1957,16 @@ function drawLog() {
 async function loadOverview() { try { S.overview = await api("/api/overview"); } catch { return; } drawOverview(); }
 function liveEmbed(j) {
   const meta = j.live_meta || {}, url = j.source?.url || "";
-  const platform = String(meta.platform || (/youtube|youtu\.be/i.test(url) ? "YouTube" : /twitch/i.test(url) ? "Twitch" : /kick/i.test(url) ? "Kick" : "")).toLowerCase();
-  const id = meta.video_id || "";
-  if (platform === "youtube" && /^[\w-]{11}$/.test(id)) return {src:`https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?autoplay=0&rel=0`,label:"YouTube"};
+  const platform = String(meta.platform || (/youtube|youtu\\.be/i.test(url) ? "YouTube" : /twitch/i.test(url) ? "Twitch" : /kick/i.test(url) ? "Kick" : "")).toLowerCase();
+  let id = meta.video_id || "";
+  if (platform === "youtube" && !id) {
+    try {
+      const u = new URL(url);
+      id = u.hostname.includes("youtu.be") ? u.pathname.slice(1).split("/")[0] :
+        (u.searchParams.get("v") || (u.pathname.match(/\\/(?:live|shorts|embed)\\/([\\w-]{11})/) || [])[1] || "");
+    } catch {}
+  }
+  if (platform === "youtube" && /^[\\w-]{11}$/.test(id)) return {src:`https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?autoplay=0&rel=0`,label:"YouTube"};
   const path = (() => { try { return new URL(url).pathname.split("/").filter(Boolean)[0] || ""; } catch { return ""; } })();
   if (platform === "twitch" && /^[a-z0-9_]{2,40}$/i.test(path)) return {src:`https://player.twitch.tv/?channel=${encodeURIComponent(path)}&parent=${encodeURIComponent(location.hostname)}&muted=true`,label:"Twitch"};
   if (platform === "kick" && /^[a-z0-9_-]{2,40}$/i.test(path)) return {src:`https://player.kick.com/${encodeURIComponent(path)}?muted=true`,label:"Kick"};
@@ -1971,22 +1978,30 @@ function drawLive() {
   const active = liveJobs.filter(j => j.status === "live" || j.status === "running");
   const recent = liveJobs.filter(j => !active.includes(j)).slice(0, 8);
   box.innerHTML = `<section class="card">
-    <div class="card-head"><div><h2>Monitor a live stream</h2><p class="sub">Start recording a creator's live channel. ClipNova checks the stream and starts building clips from the recording.</p></div></div>
+    <div class="card-head"><div><h2>Monitor a live stream</h2><p class="sub">Monitor and record a creator's live channel. ClipNova resolves the broadcast, records it and creates clips from the live footage.</p></div></div>
     ${S.creators.length ? `<div class="row" style="gap:10px;flex-wrap:wrap">
       <select class="input" id="monitorCreator" style="min-width:190px;flex:1"><option value="">Choose creator</option>${S.creators.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join("")}</select>
       <button class="btn primary" data-act="startmonitor">${ic("radio")}Start monitoring</button></div>
-      <p class="help" style="margin-top:10px">Add a YouTube, Twitch or Kick channel in that creator's Setup. A stream must actually be live to play here.</p>`
+      <p class="help" style="margin-top:10px">YouTube, Twitch and Kick channels are supported. A YouTube API key is not normally required for stream detection; YouTube may still restrict automated access.</p>`
       : `<div class="empty"><b>Create a creator first</b><span>Live monitoring is linked to a creator so clips, settings and posting destinations stay organised.</span><button class="btn primary" data-act="newcreator">${ic("plusc")}New creator</button></div>`}
     </section>
-    <section class="card"><div class="card-head"><div><h2>Currently monitored</h2><p class="sub">${active.length} recording session${active.length === 1 ? "" : "s"}</p></div><span class="pill ${active.length ? "live" : ""}">${active.length ? "Monitoring" : "Idle"}</span></div>
+    <section class="card"><div class="card-head"><div><h2>Currently monitored</h2><p class="sub">${active.length} active session${active.length === 1 ? "" : "s"}</p></div><span class="pill ${active.length ? "live" : ""}">${active.length ? "Monitoring" : "Idle"}</span></div>
       ${active.length ? active.map(j => {
         const player = liveEmbed(j), meta = j.live_meta || {}, title = meta.title || j.title || j.name || "Live stream";
-        const state = /connect|start/i.test(j.stage || "") && !(j.duration > 0) ? "Connecting to stream" : j.duration > 0 ? "Recording live video" : (j.stage || "Checking stream");
+        const recording = Number(j.duration || 0) > 0;
+        const failed = Boolean(j.error);
+        const state = failed ? "Connection problem" : recording ? "Recording live video" : "Resolving broadcast";
         const viewers = Number.isFinite(Number(meta.viewers)) && meta.viewers !== null && meta.viewers !== "" ? Number(meta.viewers).toLocaleString() : "";
+        const thumbnail = meta.thumbnail || "";
         return `<div class="livecard" style="padding:14px;border:1px solid var(--line);border-radius:12px;margin:10px 0">
-          <div class="row" style="justify-content:space-between;gap:12px;margin-bottom:12px"><div><b>${esc(title)}</b><div class="sub">${esc(meta.uploader || j.uploader || j.source?.url || "")} · ${esc(state)}</div></div><span class="pill live"><span class="dot"></span>Recording</span></div>
-          ${player ? `<div class="stream" style="margin:0 0 12px;grid-template-columns:1fr"><div class="player"><iframe src="${esc(player.src)}" title="${esc(player.label)} live stream" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe></div><div class="sinfo" style="padding:4px 2px"><div class="row"><span class="pill">${esc(player.label)}</span>${viewers ? `<span class="sub">${viewers} watching</span>` : ""}</div><div class="sub">If the player is blank, the platform may block embedding or the broadcast may have ended.</div></div></div>` : `<div class="empty" style="padding:24px"><b>Stream preview not available yet</b><span>${meta.error ? esc(meta.error) : "ClipNova is still resolving the live broadcast. The player will appear when the platform returns a playable stream ID."}</span><a class="btn sm" href="${esc(j.source?.url || "#")}" target="_blank" rel="noopener">Open channel ${ic("upright")}</a></div>`}
-          <div class="row" style="margin-top:12px"><button class="btn" data-act="clipnow" data-j="${esc(j.id)}" data-s="30" ${j.duration > 0 ? "" : "disabled"}>${ic("scissors")}Clip last 30 seconds</button><button class="btn danger" data-act="stoplive" data-j="${esc(j.id)}">${ic("stop")}Stop recording</button></div>
+          <div class="row" style="justify-content:space-between;gap:12px;margin-bottom:12px"><div><b>${esc(title)}</b><div class="sub">${esc(meta.uploader || j.uploader || j.source?.url || "")} · ${esc(state)}</div></div><span class="pill ${failed ? "bad" : recording ? "live" : "warn"}"><span class="dot"></span>${failed ? "Needs attention" : recording ? "Recording" : "Resolving"}</span></div>
+          ${player ? `<div class="stream" style="margin:0 0 12px;grid-template-columns:1fr"><div class="player"><iframe src="${esc(player.src)}" title="${esc(player.label)} live stream" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe></div><div class="sinfo" style="padding:4px 2px"><div class="row"><span class="pill">${esc(player.label)}</span>${viewers ? `<span class="sub">${viewers} watching</span>` : ""}</div><div class="sub">If the player is blank, the platform may block embedding or the broadcast may have ended.</div></div></div>` :
+          `<div class="empty" style="padding:18px">${thumbnail ? `<img src="${esc(thumbnail)}" alt="Live stream thumbnail" style="display:block;width:min(100%,420px);max-height:236px;object-fit:cover;border-radius:10px;margin:0 auto 12px">` : ""}
+            <b>${failed ? "ClipNova couldn't connect to this stream" : "Waiting for a playable broadcast"}</b>
+            <span>${failed ? esc(j.error) : "The channel is being checked. A preview appears after the platform provides a live video ID. If the channel is offline, no player can be shown."}</span>
+            <a class="btn sm" href="${esc(j.source?.url || "#")}" target="_blank" rel="noopener">Open channel ${ic("upright")}</a>
+          </div>`}
+          <div class="row" style="margin-top:12px"><button class="btn" data-act="clipnow" data-j="${esc(j.id)}" data-s="30" ${recording ? "" : "disabled"}>${ic("scissors")}Clip last 30 seconds</button><button class="btn danger" data-act="stoplive" data-j="${esc(j.id)}">${ic("stop")}Stop recording</button></div>
         </div>`;
       }).join("") : `<div class="empty"><b>No streams being monitored</b><span>Choose a creator above and start monitoring their channel.</span></div>`}
     </section>
