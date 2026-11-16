@@ -78,7 +78,7 @@ def install_fonts():
             shutil.copyfile(f, config.FONTS_DIR / f.name)
 
 
-LAYOUTS = {"blur": "Full frame + blurred fill", "zoom": "Zoomed in + blurred fill", "crop": "Fill the screen (centre crop)"}
+LAYOUTS = {"blur": "Full frame + blurred fill", "zoom": "Zoomed in + blurred fill", "crop": "Fill the screen (centre crop)", "smart": "Smart face framing"}
 
 
 def _ts(t):
@@ -227,7 +227,57 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     return head + "\n".join(ev) + "\n"
 
 
-def _filter(layout, fg_h):
+def _face_center(src: Path, start: float, end: float, src_w: int, src_h: int):
+    """Find the dominant face centre in a short clip sample; return a source-width fraction or None."""
+    if src_w / max(1, src_h) <= W / H:
+        return None
+    cap = None
+    try:
+        import cv2
+        cap = cv2.VideoCapture(str(src))
+        if not cap.isOpened():
+            return None
+        cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+        if cascade.empty():
+            return None
+        duration = max(0.0, end - start)
+        step = max(0.5, duration / 8)
+        detections = []
+        at = 0.0
+        while at <= duration:
+            cap.set(cv2.CAP_PROP_POS_MSEC, (start + at) * 1000)
+            ok, frame = cap.read()
+            if ok and frame is not None:
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                faces = cascade.detectMultiScale(gray, scaleFactor=1.12, minNeighbors=5, minSize=(40, 40))
+                if len(faces):
+                    x, y, w, h = max(faces, key=lambda box: box[2] * box[3])
+                    detections.append((x + w / 2) / max(1, frame.shape[1]))
+            at += step
+        return max(0.0, min(1.0, sum(detections) / len(detections))) if detections else None
+    except Exception:
+        return None
+    finally:
+        if cap is not None:
+            cap.release()
+
+
+def _smart_crop_filter(face_x, src_w, src_h):
+    """Build a centre-safe crop expression, positioning the 9:16 window around the detected face."""
+    crop_w = src_h * W / H
+    left = max(0.0, min(src_w - crop_w, face_x * src_w - crop_w / 2))
+    fraction = left / max(1.0, src_w - crop_w)
+    return (f"[0:v]fps={config.OUT_FPS},scale={W}:{H}:force_original_aspect_ratio=increase,"
+            f"crop={W}:{H}:x='min(max((iw-ow)*{fraction:.6f},0),iw-ow)':"
+            f"y=(ih-oh)/2,setsar=1[v0];")
+
+
+def _filter(layout, fg_h, src=None, start=0, end=0, src_w=W, src_h=H):
+    if layout == "smart":
+        face_x = _face_center(src, start, end, src_w, src_h) if src else None
+        if face_x is not None:
+            return _smart_crop_filter(face_x, src_w, src_h)
+        layout = "crop"
     if layout == "crop":
         return f"[0:v]fps={config.OUT_FPS},scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},setsar=1[v0];"
     return (f"[0:v]fps={config.OUT_FPS},split=2[a][b];"
@@ -254,18 +304,18 @@ def render_clip(src: Path, out_dir: Path, name: str, clip: dict, words: list, sr
     # break the filter syntax).
     work = Path(tempfile.mkdtemp(prefix="pk"))
     try:
-        return _render_in(work, src, out_dir, name, start, end, layout, fg_h, ass)
+        return _render_in(work, src, out_dir, name, start, end, layout, fg_h, ass, src_w, src_h)
     finally:
         shutil.rmtree(work, ignore_errors=True)
 
 
-def _render_in(work: Path, src: Path, out_dir: Path, name: str, start, end, layout, fg_h, ass: str) -> dict:
+def _render_in(work: Path, src: Path, out_dir: Path, name: str, start, end, layout, fg_h, ass: str, clip_src_w: int, clip_src_h: int) -> dict:
     global _qsv_ok
     (work / f"{name}.ass").write_text(ass, encoding="utf-8")
     (work / "f").mkdir()
     for f in config.FONTS_DIR.glob("*.ttf"):
         shutil.copyfile(f, work / "f" / f.name)
-    fc = _filter(layout, fg_h) + f"[v0]ass={name}.ass:fontsdir=f[v]"
+    fc = _filter(layout, fg_h, src, start, end, clip_src_w, clip_src_h) + f"[v0]ass={name}.ass:fontsdir=f[v]"
     base = ["ffmpeg", "-y", "-v", "error", "-ss", f"{start:.2f}", "-t", f"{end - start:.2f}", "-i", str(src),
             "-filter_complex", fc, "-map", "[v]", "-map", "0:a:0", "-af", "loudnorm=I=-14:TP=-1.5:LRA=11",
             "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-movflags", "+faststart", "-pix_fmt"]
