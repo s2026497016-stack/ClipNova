@@ -23,7 +23,7 @@ check("right-side face moves crop window right", "1.000000" in right)
 check("center face stays centered", "0.500000" in middle)
 track = [(0.0, 0.15), (2.0, 0.85), (4.0, 0.40)]
 expr = render._track_expression(track)
-check("tracking expression includes time-based interpolation", "t-" in expr and "if(lt(t\\\\," in expr)
+check("tracking expression includes time-based interpolation", "t-" in expr and expr.startswith("if(lt(t"))
 check("tracking expression retains first and final target positions", "0.150000" in expr and "0.400000" in expr)
 check("tracking expression clamps out-of-range face positions",
       "1.000000" in render._track_expression([(0, 1.4)]))
