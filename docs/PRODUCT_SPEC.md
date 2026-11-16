@@ -68,16 +68,30 @@ Build one reliable video-creation workspace that takes a creator from source med
 - Tests cover permissions, job lifecycle, source validation, media cleanup, and exports.
 - All user-visible controls must work; unavailable integrations must be marked as planned or disabled.
 
-## Current implementation status
+## Verified implementation status
 
-- [x] Imported the 89-file application foundation, including backend, web UI, tests, fonts, demo media and deployment assets.
-- [x] Preserved the upstream MIT license file and its copyright notice.
-- [x] Rebranded the main app pages, email templates, logos, configuration names, deployment files and repository links as ClipNova.
-- [x] Removed the upstream maker's Instagram promotion and replaced the repository link with the ClipNova repository.
-- [x] Added a GitHub Actions workflow to run the isolated regression suite.
-- [ ] Confirm the first CI run passes; fix any regressions introduced during import/rebranding.
-- [ ] Review the user's demo video and map its exact interface and interactions into the product.
- 
+### Working in the imported application
+- [x] Local video upload, chunked uploads, source URL intake and media metadata.
+- [x] Transcript/audio-based highlight selection, with an AI provider configured or a loudness-based fallback.
+- [x] Vertical MP4 rendering with animated word captions, hook text, caption styles and background/zoom/centre-crop layouts.
+- [x] Clip review, manual in/out adjustments, title/hook edits and re-rendering.
+- [x] Supported YouTube, Twitch and Kick source workflows, including rolling live-stream capture where the provider permits access.
+- [x] Project/creator history, accounts, storage controls, job queues and supported social-account publishing flows.
+- [x] Upstream MIT license and required copyright notice retained.
+- [x] ClipNova branding applied to app pages, emails, logo assets, configuration, deployment templates and repository links.
+- [x] GitHub Actions regression workflow added. The latest run completed successfully, including dependency installation and `python tests/run.py`.
+
+### Known gaps — do not describe these as finished
+- [ ] Gaming event recognition is not computer vision: current highlight selection uses transcript, audio loudness and available live-chat signals. It does not reliably identify kills, wins, headshots or game HUD events from pixels.
+- [ ] The current editor is a clip-review and re-render workflow, not a multi-track nonlinear editor with keyframes.
+- [ ] Smart face/person tracking and automatic speaker-aware reframing are not verified; current output layouts are blur, zoom and centre crop.
+- [ ] Cloud-hosted projects and cross-device sync require a configured deployment/storage architecture; local data is not automatically synced between devices.
+- [ ] Live clipping latency and provider reliability still need real stream tests with authorized channels.
+- [ ] Social publishing needs valid provider credentials and must be tested against each platform's current API permissions.
+- [ ] Review the user's demo video and map its exact interface and interactions into the product; the video has not yet been accessible to inspect.
+
+The imported foundation is automated-test green, but a successful regression suite is not the same as full production acceptance. Each known gap must be implemented and tested before being marked complete.
+
 ## Delivery order
 
 1. **Foundation:** import, rebrand and run regression tests.
