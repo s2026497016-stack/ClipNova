@@ -54,7 +54,8 @@ def _next_slot(account_id, gap_min, cap):
     return t
 
 
-def enqueue(job, clip, account_ids, now=False) -> list:
+def enqueue(job, clip, account_ids, now=False, metadata=None) -> list:
+    metadata = metadata if isinstance(metadata, dict) else {}
     c = creators.get(job["creator"]) or creators.DEFAULTS
     made = []
     with _lock:
@@ -68,7 +69,10 @@ def enqueue(job, clip, account_ids, now=False) -> list:
             due = time.time() if now else _next_slot(aid, c["post_gap_min"], c["daily_cap"])
             p = {"id": secrets.token_hex(8), "user": ctx.uid(), "job": job["id"], "clip": clip["id"], "creator": job["creator"],
                  "account": aid, "account_name": acc["name"], "platform": acc["platform"], "status": "scheduled",
-                 "due_at": due, "created": time.time(), "title": clip.get("title") or clip.get("hook") or "Clip",
+                 "due_at": due, "created": time.time(), "title": str(metadata.get("title") or clip.get("title") or clip.get("hook") or "Clip")[:100],
+                  "description": str(metadata.get("description") if metadata.get("description") is not None else clip.get("description") or "")[:4900],
+                  "hashtags": [str(x).lstrip("#")[:50] for x in (metadata.get("hashtags") if isinstance(metadata.get("hashtags"), list) else clip.get("hashtags", []))][:30],
+                  "privacy": metadata.get("privacy") if metadata.get("privacy") in ("public", "unlisted", "private") else c.get("privacy", "public"),
                  "score": clip.get("score", 0), "tries": 0, "url": "", "remote_id": "", "error": None, "views": None}
             _posts.append(p)
             made.append(p)
@@ -106,13 +110,17 @@ def _post(p):
             raise RuntimeError("That account was disconnected.")
         path = Path(job["dir"]) / "clips" / clip["file"]
         creator = creators.get(job["creator"]) or dict(creators.DEFAULTS, name="clips")
-        title, cap = clip.get("title") or clip.get("hook") or "Clip", _caption(clip, creator)
+        post_clip = {**clip, "title": p.get("title") or clip.get("title") or clip.get("hook") or "Clip",
+                     "description": p.get("description", clip.get("description", "")),
+                     "hashtags": p.get("hashtags", clip.get("hashtags", []))}
+        title, cap = post_clip["title"], _caption(post_clip, creator)
+        privacy = p.get("privacy") or creator["privacy"]
         if acc["platform"] == "youtube":
-            rid, url = accounts.youtube_upload(acc, path, title, cap + "\n\n#Shorts", clip.get("hashtags", []), creator["privacy"])
+            rid, url = accounts.youtube_upload(acc, path, title, cap + "\n\n#Shorts", post_clip["hashtags"], privacy)
         elif acc["platform"] == "instagram":
             rid, url = accounts.instagram_upload(acc, path, f"{title}\n\n{cap}", job["id"])
         elif acc["platform"] == "tiktok":
-            rid, url = accounts.tiktok_upload(acc, path, f"{title}\n\n{cap}", creator["privacy"])
+            rid, url = accounts.tiktok_upload(acc, path, f"{title}\n\n{cap}", privacy)
         else:
             raise RuntimeError("That kind of account is no longer supported.")
         p.update(status="posted", posted_at=time.time(), remote_id=rid, url=url, error=None)

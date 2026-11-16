@@ -825,6 +825,56 @@ dialog[open]{animation:fadein .16s ease}
   .ai-big{font-size:24px}
 }
 </style>
+
+<style id="clipnova-studio-refresh">
+/* ClipNova original studio direction — layered over the inherited workflow styles. */
+:root{--brand:#c7ff54;--brand-press:#b4ed3c;--brand-ink:#11150b;--brand-soft:#efffd2;--brand-line:#c7e99a;--brand-deep:#577b1d;--frame:#10120f;--frame-2:#1b2018;--frame-line:rgba(255,255,255,.09);--frame-text:#f2f5ed;--frame-dim:#929b89;--bg:#f5f6f2;--muted:#eef0e9;--line:#e4e7de;--line-2:#d5dacd;--text:#171b14;--dim:#737b6c;--faint:#9aa190;--r-lg:20px;--r:14px;--r-sm:10px;color-scheme:light}
+body{background:#10120f;font-family:Inter,Geist,system-ui,sans-serif}
+.app{grid-template-columns:252px minmax(0,1fr);gap:0}
+.side{padding:22px 14px 16px;background:#10120f}
+.side-head{padding:4px 9px 30px}.side-head .logo{height:32px}
+.side .nav{gap:5px}.nav h4{padding:19px 12px 7px;text-transform:uppercase;letter-spacing:.13em;font-size:10px;font-weight:700;color:#697260}
+.nav-item{min-height:43px;padding:0 12px;border-radius:11px;color:#c7cebf;font-size:13px;font-weight:550;gap:12px}
+.nav-item svg{color:#8d9882;width:18px;height:18px}
+.nav-item:hover{background:#1a2017;color:#fff}
+.nav-item.on{background:#c7ff54;color:#12160d;font-weight:700;box-shadow:0 5px 18px #c7ff5420}
+.nav-item.on svg{color:#12160d}
+.side-foot{border-color:#ffffff12;padding-top:14px}
+.side-card{border:1px solid #ffffff10;background:#191e16;border-radius:13px;padding:13px;color:#aab49e}
+.side-card b{color:#eff5e7}
+main{margin:0;border-radius:0;background:#f5f6f2;height:100vh;scrollbar-gutter:stable}
+.topbar{min-height:72px;padding:14px 38px;background:rgba(250,251,247,.92);backdrop-filter:blur(18px);border-bottom:1px solid #e7e9e1}
+.topbar h1{font-size:17px;font-weight:750;letter-spacing:-.035em;color:#171b14}
+.topbar p{font-size:12px;color:#7b8374;margin-top:3px}
+.content{max-width:1480px;padding:34px 42px 80px}
+.btn{border-radius:10px;border-color:#dce1d5;font-weight:650;transition:transform .16s,background .16s,box-shadow .16s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 5px 16px #18200c0c}
+.btn.primary{background:#c7ff54;border-color:#c7ff54;color:#11150b}
+.btn.primary:hover{background:#b8ef43}
+.btn.dark{background:#151a12;border-color:#151a12;color:#fff}
+.card{border-color:#e5e8df;border-radius:16px;box-shadow:0 8px 28px #26301908;padding:23px}
+.card>h2,.card-head h2{font-weight:750;letter-spacing:-.025em;color:#1a2015}
+.hero{padding:48px 30px 58px;text-align:left;background:radial-gradient(ellipse at 72% 0%,#e8f6cb 0,transparent 42%),linear-gradient(135deg,#f6f8f1,#eff2e9);border:1px solid #e7ebdf;border-radius:20px;margin:24px 32px 0;overflow:hidden}
+.hero h2{font-size:clamp(30px,4vw,46px);font-weight:800;letter-spacing:-.055em;line-height:1.04;max-width:660px;color:#151b10}
+.hero>p{margin:14px 0 26px;max-width:580px;color:#68715f;font-size:15px;line-height:1.65}
+.composer{max-width:790px;margin:0;background:#fff;border:1px solid #dce3d3;border-radius:15px;box-shadow:0 12px 34px #1d29100c}
+.composer-input input,.composer-input input:focus{height:64px;font-size:15px}
+.composer-input>svg{color:#7c876f}
+.composer-bar{padding:5px 12px 12px}
+.chip{background:#f0f3e9;color:#536044;border-radius:9px}
+.pill.brand{background:#c7ff54;color:#151a0d}
+.tabbtn.on{color:#1b2411}
+.tabbtn.on::after{background:#9acb35}
+.tabbtn.on svg{color:#638c20}
+.empty{background:#fafbf8;border-color:#dce3d5;border-radius:14px}
+input:focus,select:focus,textarea:focus{border-color:#9acb35!important;box-shadow:0 0 0 3px #c7ff5426}
+dialog{border:1px solid #dfe5d8;border-radius:18px;box-shadow:0 28px 90px #10180d35}
+#toasts>div{border-radius:12px}
+.app.mini{grid-template-columns:78px minmax(0,1fr)}
+@media(max-width:900px){.content{padding:25px 24px 60px}.topbar{padding:12px 24px}}
+@media(max-width:640px){.app{grid-template-columns:1fr}.side{padding:14px 12px}.content{padding:20px 16px 48px}.hero{margin:14px 14px 0;padding:34px 20px 38px}.hero h2{font-size:31px}.topbar{padding:10px 16px;min-height:62px}main{height:100vh}}
+</style>
+
 </head>
 <body>
 <div class="app" id="app">
@@ -1263,6 +1313,8 @@ function drawShell() {  const nav = (v, icon, label, extra = "") => `<button cla
   put($("#nav"), nav("overview", navIc("home", "overview"), "Home") +
     nav("library", navIc("film", "library"), "All videos", (() => { const w = S.jobs.filter(j => ["queued", "running"].includes(j.status)).length;
       return w ? `<span class="working" title="${w} working now"><i></i>${w} working</span>` : S.jobs.length ? `<span class="count">${S.jobs.length}</span>` : ""; })()) +
+    nav("live", navIc("radio", "live"), "Live streams", (() => { const n = S.jobs.filter(j => j.kind === "live" && j.status === "live").length; return n ? `<span class="working"><i></i>${n}</span>` : ""; })()) +
+    nav("social", navIc("send", "social"), "Social publishing") +
     `<h4><span>Creators</span></h4>` +
     S.creators.map(c => nav("c:" + c.id, cav(c), c.name,
       c.live_job ? `<span class="sb-tag rec" title="Recording now"><i></i>Rec</span>`
@@ -1278,7 +1330,9 @@ function drawShell() {  const nav = (v, icon, label, extra = "") => `<button cla
       <button class="icon-btn bell" data-act="bell" title="Notifications" aria-label="Notifications${S.status.unread ? `, ${S.status.unread} new` : ""}" aria-haspopup="dialog">${ic("bell")}${S.status.unread ? `<span class="dotn">${S.status.unread > 9 ? "9+" : S.status.unread}</span>` : ""}</button></div>` : ""));
   const c = creator();
   const recording = S.creators.filter(x => x.live_job).length;
-  let title = {overview:"Home", library:"All videos", settings:"Settings", usage:"AI usage"}[S.view] || "", sub = "", act = "";
+  let title = {overview:"Home", library:"All videos", live:"Live streams", social:"Social publishing", settings:"Settings", usage:"AI usage"}[S.view] || "", sub = "", act = "";
+  if (S.view === "live") sub = "Monitor live channels and make clips while they're streaming.";
+  if (S.view === "social") sub = "Choose finished clips, review their post text and send them to your connected accounts.";
   if (S.view === "usage") sub = "What the AI has been used for.";
   if (S.view === "overview") sub = `${greeting()}. ${S.creators.length} creator${S.creators.length === 1 ? "" : "s"}${recording ? `, ${recording} recording now` : ""}.`;
   if (S.view === "library") sub = "Every video and recording, across all creators.";
@@ -1315,7 +1369,7 @@ function drawShell() {  const nav = (v, icon, label, extra = "") => `<button cla
   put($("#title"), `<span>${esc(title)}</span>`); put($("#subtitle"), subHtml ?? esc(sub)); put($("#actions"), act);
 }
 
-const ROUTES = {overview: "", library: "videos", settings: "settings", usage: "usage"};
+const ROUTES = {overview: "", library: "videos", live: "live", social: "social", settings: "settings", usage: "usage"};
 function pathFor(v, tab) {
   if (v.startsWith("c:")) return `/app/creators/${encodeURIComponent(v.slice(2))}${tab && tab !== "clips" ? "/" + tab : ""}`;
   if (v === "settings") return "/app/settings" + (tab ? "/" + tab : "");
@@ -1347,6 +1401,8 @@ function go(v, tab, fromHistory) {
       <p>Paste a link or drop in videos. You get captioned shorts back.</p><div id="add"></div></section>` : "";
   if (v === "overview") view.innerHTML = `<div id="ov"></div>`;
   else if (v === "library") view.innerHTML = `<div id="add"></div><div id="jobs"></div>`;
+  else if (v === "live") view.innerHTML = `<div id="livepage"></div>`;
+  else if (v === "social") view.innerHTML = `<div id="socialpage"></div>`;
   else if (v === "settings") view.innerHTML = `<div id="sform"></div>`;
   else if (v === "usage") { view.innerHTML = `<div id="usage"></div>`; loadUsage(); }
   else view.innerHTML = `<div id="stream"></div><div id="cbody"></div>`;   // the live player stays put across tabs: no restart, no rebuffer
@@ -1355,7 +1411,8 @@ function go(v, tab, fromHistory) {
   if (v === "settings") drawSettings();
   if (v.startsWith("c:")) setTab(S.ctab);
   $("#main").scrollTo(0, 0); render();
-  if (v === "overview") loadOverview();
+  if (v === "overview" || v === "social") loadOverview().then(() => { if (S.view === "social") drawSocial(); });
+  if (v === "live") drawLive();
 }
 function setTab(t) {
   S.ctab = t;
@@ -1898,6 +1955,47 @@ function drawLog() {
 
 /* ============================================================ overview */
 async function loadOverview() { try { S.overview = await api("/api/overview"); } catch { return; } drawOverview(); }
+function drawLive() {
+  const box = $("#livepage"); if (!box) return;
+  const liveJobs = S.jobs.filter(j => j.kind === "live");
+  const active = liveJobs.filter(j => j.status === "live");
+  const recent = liveJobs.filter(j => j.status !== "live").slice(0, 8);
+  box.innerHTML = `<section class="card">
+    <div class="card-head"><div><h2>Monitor a live stream</h2><p class="sub">Start recording from one of your creator workspaces. Add a channel in Creator Setup first.</p></div></div>
+    ${S.creators.length ? `<div class="row" style="gap:10px;flex-wrap:wrap">
+      <select class="input" id="monitorCreator" style="min-width:190px;flex:1"><option value="">Choose creator</option>${S.creators.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join("")}</select>
+      <button class="btn primary" data-act="startmonitor">${ic("radio")}Start monitoring</button></div>
+      <p class="help" style="margin-top:10px">To add or change a channel, open that creator and choose Setup.</p>`
+      : `<div class="empty"><b>Create a creator first</b><span>Live monitoring is linked to a creator so clips, settings and posting destinations stay organised.</span><button class="btn primary" data-act="newcreator">${ic("plusc")}New creator</button></div>`}
+    </section>
+    <section class="card"><div class="card-head"><div><h2>Currently monitored</h2><p class="sub">${active.length} active stream${active.length === 1 ? "" : "s"}</p></div><span class="pill ${active.length ? "live" : ""}">${active.length ? "Monitoring" : "Idle"}</span></div>
+      ${active.length ? active.map(j => `<div class="livecard" style="padding:14px;border:1px solid var(--line);border-radius:12px;margin:10px 0">
+        <div class="row" style="justify-content:space-between;gap:12px"><div><b>${esc(j.title || j.name || "Live stream")}</b><div class="sub">${esc(j.uploader || j.source?.url || "")} · ${esc(j.stage || "Recording")}</div></div><span class="pill live">Live</span></div>
+        <div class="row" style="margin-top:12px"><button class="btn" data-act="clipnow" data-j="${esc(j.id)}" data-s="30">${ic("scissors")}Clip last 30 seconds</button><button class="btn danger" data-act="stoplive" data-j="${esc(j.id)}">${ic("stop")}Stop monitoring</button></div>
+      </div>`).join("") : `<div class="empty"><b>No streams being monitored</b><span>Choose a creator above and start monitoring their channel.</span></div>`}
+    </section>
+    ${recent.length ? `<section class="card"><div class="card-head"><div><h2>Recent sessions</h2><p class="sub">Previous live recordings</p></div></div>${recent.map(j => `<div class="row" style="justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)"><div><b>${esc(j.title || j.name || "Live session")}</b><div class="sub">${esc(j.stage || j.status)} · ${(j.clips || []).filter(c => c.status === "done").length} clips</div></div><span class="pill ${j.status === "error" ? "bad" : ""}">${esc(j.status)}</span></div>`).join("")}</section>` : ""}`;
+}
+function drawSocial() {
+  const box = $("#socialpage"); if (!box) return;
+  const clips = S.jobs.flatMap(j => (j.clips || []).filter(c => c.status === "done").map(c => ({j,c})));
+  const posts = S.overview?.posts || [];
+  const accounts = S.accounts || [];
+  box.innerHTML = `<section class="card"><div class="card-head"><div><h2>Publish finished clips</h2><p class="sub">Select clips and connected accounts. Review the title and description before queueing.</p></div></div>
+    ${accounts.length ? `<h3>Publishing accounts</h3><div class="row" style="flex-wrap:wrap;margin:10px 0 18px">${accounts.map(a => `<label class="ck"><input type="checkbox" data-pub-account value="${esc(a.id)}"> ${esc(a.label || a.platform)} · ${esc(a.name)}</label>`).join("")}</div>` : `<p class="help">No accounts connected. Connect YouTube, Instagram or TikTok in Settings first.</p><button class="btn" data-act="go" data-v="settings">${ic("plug")}Open Settings</button>`}
+    <div class="social-pick">${clips.length ? clips.map(({j,c}) => `<div class="social-row" data-pub-row="${esc(j.id)}:${esc(c.id)}" style="padding:12px 0;border-bottom:1px solid var(--line)">
+      <label class="ck"><input type="checkbox" data-pub-clip value="${esc(j.id + ":" + c.id)}"> <b>${esc(c.title || c.hook || "Untitled clip")}</b></label>
+      <span class="sub">${esc(j.title || j.name || "Video")} · ${Math.max(1,Math.round((c.end||0)-(c.start||0)))}s</span>
+      <input class="input" data-pub-title value="${esc(c.title || c.hook || "Clip")}" aria-label="Post title" style="width:100%;margin-top:8px">
+      <textarea class="input" data-pub-description rows="2" aria-label="Post description" style="width:100%;margin-top:8px">${esc(c.description || "")}</textarea>
+      <input class="input" data-pub-hashtags value="${esc((c.hashtags || []).map(x => "#"+x).join(" "))}" aria-label="Hashtags" placeholder="#hashtags" style="width:100%;margin-top:8px">
+    </div>`).join("") : `<div class="empty"><b>No finished clips yet</b><span>Make clips first. Finished clips will appear here for publishing.</span><button class="btn" data-act="go" data-v="library">Open all videos</button></div>`}</div>
+    ${accounts.length && clips.length ? `<div class="row" style="margin-top:16px;flex-wrap:wrap"><label class="f">Visibility<select class="input" id="pubPrivacy"><option value="public">Public</option><option value="unlisted">Unlisted</option><option value="private">Private</option></select></label><button class="btn primary" data-act="socialqueue">${ic("send")}Queue selected clips</button></div>` : ""}
+    </section>
+    <section class="card"><div class="card-head"><div><h2>Publishing queue & history</h2><p class="sub">Confirmed posts, waiting uploads and failures.</p></div></div>
+      ${posts.length ? `<div class="scroll"><table class="stack"><tr><th>Clip</th><th>Account</th><th>Status</th><th>Details</th><th></th></tr>${posts.map(p => `<tr><td>${p.url ? `<a class="lnk" href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.title || "Clip")}</a>` : esc(p.title || "Clip")}</td><td>${esc(p.account_name || p.platform || "")}</td><td><span class="pill ${p.status === "posted" ? "ok" : p.status === "failed" ? "bad" : "warn"}">${esc(p.status)}</span></td><td>${esc(p.error || (p.due_at ? new Date(p.due_at*1000).toLocaleString() : p.url || ""))}</td><td>${p.status === "scheduled" ? `<button class="btn sm" data-act="pcancel" data-id="${esc(p.id)}">Cancel</button>` : p.status === "failed" || p.status === "cancelled" ? `<button class="btn sm" data-act="pretry" data-id="${esc(p.id)}">Retry</button>` : ""}</td></tr>`).join("")}</table></div>` : `<div class="empty"><b>No publishing activity yet</b><span>Your queued and published clips will appear here.</span></div>`}
+    </section>`;
+}
 function barChart(daily) {
   const W = 720, H = 230, pl = 30, pb = 28, pt = 12, n = daily.length, ch = H - pt - pb;
   const peak = Math.max(1, ...daily.map(d => Math.max(d.clips, d.posted)));
@@ -2219,6 +2317,8 @@ $("#clipdlg").addEventListener("click", e => { if (e.target === e.currentTarget)
 function render() {
   drawShell(); drawJobs(); drawStream(); drawSelBar();
   if (S.view === "overview") drawOverview();
+  if (S.view === "live") drawLive();
+  if (S.view === "social") drawSocial();
   if ($("#clog")) drawLog();
   if (D.jid) drawClipDlg(false);
 }
@@ -2237,7 +2337,7 @@ async function tick() {
     S.jobs = jobs; S.creators = creators; S.accounts = accounts;
     if (got.ai) S.status.ai = got.ai;
     if (got.unread != null) S.status.unread = got.unread;
-    if (S.view === "overview") { S.overview = await api("/api/overview"); S.ovAt = Date.now(); }
+    if (S.view === "overview" || S.view === "social") { S.overview = await api("/api/overview"); S.ovAt = Date.now(); }
     if (creatorId() && !creator()) return go("overview");
     render();
   } catch {}
@@ -2297,6 +2397,32 @@ document.addEventListener("click", async e => {
   if (b.tagName === "A") e.preventDefault();
   try {
     if (a === "go") { closePops(); return go(d.v, d.tab); }
+    if (a === "startmonitor") {
+      const cid = $("#monitorCreator")?.value;
+      if (!cid) return toast("Choose a creator first.", "bad");
+      const c = S.creators.find(x => x.id === cid);
+      if (!c || !c.channel) return toast("Add a channel in this creator's Setup first.", "bad");
+      b.disabled = true;
+      try { const j = await send(`/api/creators/${encodeURIComponent(cid)}/live`, {}); if (j?.id && !jobOf(j.id)) S.jobs.unshift(j); toast("Monitoring started. Clips will appear as they are made.", "ok"); await tick(); drawLive(); }
+      finally { b.disabled = false; }
+      return;
+    }
+    if (a === "socialqueue") {
+      const selected = $("[data-pub-clip]:checked"), accountIds = $("[data-pub-account]:checked").map(x => x.value);
+      if (!selected.length) return toast("Select at least one finished clip.", "bad");
+      if (!accountIds.length) return toast("Select at least one publishing account.", "bad");
+      let queued = 0;
+      for (const input of selected) {
+        const [jid,cid] = input.value.split(":");
+        const row = input.closest("[data-pub-row]");
+        const title = row?.querySelector("[data-pub-title]")?.value || "Clip";
+        const description = row?.querySelector("[data-pub-description]")?.value || "";
+        const hashtags = (row?.querySelector("[data-pub-hashtags]")?.value || "").split(/[\s,]+/).map(x=>x.replace(/^#/,"")).filter(Boolean).slice(0,30);
+        const result = await send("/api/posts", {job:jid, clip:cid, accounts:accountIds, title, description, hashtags, privacy:$("#pubPrivacy")?.value || "public"});
+        queued += result.queued || 0;
+      }
+      toast(`Queued ${queued} post${queued === 1 ? "" : "s"}.`, "ok"); await loadOverview(); drawSocial(); return;
+    }
     if (a === "aimodels") {
       b.disabled = true;
       try {
