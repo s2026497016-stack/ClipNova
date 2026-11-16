@@ -64,9 +64,9 @@ Rules:
 - Skip weak moments. Fewer strong clips beat many weak ones. Return [] if nothing is worth clipping.
 - score: 0-100, how likely a stranger keeps watching. Be honest; most clips are 50-80.
 - hook: at most 5 words, ALL CAPS, shown as big text on the video. Curiosity, but true to what happens.
-- title: at most 70 characters, for the post.
-- description: one or two sentences.
-- hashtags: 5 tags without the # sign.
+- title: at most 70 characters, for the post. Make it specific, intriguing and human-written. Use the actual subject, action, surprising claim, result or punchline from THIS clip. Do not use generic filler such as "Work For It", "Great For It", "Wait For It", "Amazing Moment", or "You Won't Believe". Do not merely repeat the source video title. Every title in this response must be different and describe a different angle; avoid reusing any title listed in the context below.
+- description: write 2 useful sentences (about 20-45 words total). Explain what specifically happens and naturally include 2-4 relevant search phrases a viewer might type (such as the game/topic/person/concept and the specific action or takeaway). Make it readable, accurate and useful; never stuff unrelated keywords or invent names, events or claims.
+- hashtags: exactly 5 specific, relevant tags without the # sign. Prefer the actual game/topic, subject, niche and moment type over generic tags.
 - highlight_words: 3 to 6 single words spoken in the clip that carry the punch.
 - Write hook, title, description, hashtags and highlight_words in English. If the video is in Hindi or Urdu,
   you may write them the way people type Hindi and Urdu in Roman letters (Hinglish: "yaar ye kya hai"), never
@@ -263,15 +263,22 @@ def find_clips(words, db, duration, title="", uploader="", max_clips=6, min_len=
         windows.append((t, min(duration, t + WINDOW_SEC)))
         t += WINDOW_SEC - OVERLAP_SEC
     per_window = max(2, min(8, int(np.ceil(max_clips * 1.5 / len(windows))) + 1))
+    used_titles = []
     for a, b in windows:
         chunk = [l for l in lines if a <= l["s"] < b]
         if len(chunk) < 3:
             continue
+        title_context = ("\nPreviously generated clip titles (do not repeat or closely paraphrase):\n- "
+                         + "\n- ".join(_safe(x, 90) for x in used_titles[-30:])) if used_titles else ""
         prompt = (HEAD.format(title=_safe(title) or "unknown", uploader=_safe(uploader) or "unknown", n=per_window)
+                  + title_context
                   + RULES.format(min_len=min_len, max_len=max_len, transcript=_fmt(chunk)))
         try:
             out, used_model, spent = ask_ai(prompt, purpose="Video: finding clips")
             tokens += spent
+            if isinstance(out, list):
+                used_titles.extend(_text(c.get("title"), 90) for c in out
+                                   if isinstance(c, dict) and _text(c.get("title"), 90))
             found += [c for c in out if isinstance(c, dict) and a - 5 <= float(c.get("start", -1)) < b]
         except Exception as e:  # noqa: BLE001
             log(f"AI window {a:.0f}-{b:.0f}s failed: {e}")
@@ -298,8 +305,11 @@ def find_live_clips(words, z, now, chat=None, title="", uploader="", min_len=15,
     lines = make_lines(words, z, chat)
     if len(lines) < 3:
         return [], 0
+    prior_titles = [c.get("title", "") for c in existing if isinstance(c, dict) and c.get("title")]
+    title_context = ("\nPreviously generated clip titles (do not repeat or closely paraphrase):\n- "
+                     + "\n- ".join(_safe(x, 90) for x in prior_titles[-30:])) if prior_titles else ""
     prompt = (HEAD.format(title=_safe(title) or "unknown", uploader=_safe(uploader) or "unknown", n=2)
-              + LIVE_NOTE.format(now=now)
+              + LIVE_NOTE.format(now=now) + title_context
               + RULES.format(min_len=min_len, max_len=max_len, transcript=_fmt(lines)))
     out, _model, spent = ask_ai(prompt, purpose="Live check")
     clips = []
