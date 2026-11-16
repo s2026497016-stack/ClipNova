@@ -103,3 +103,8 @@ The imported foundation is automated-test green, but a successful regression sui
 7. **Release:** end-to-end tests, deployment, backups, security review and user documentation.
 
 The source import and rebrand are committed. The first automated test run is in progress; features are not marked complete until their real workflows have been verified.
+
+
+## Smart face framing update
+
+The layout selector now includes **Smart face framing**. For landscape footage, ClipNova samples frames across each selected clip with OpenCV's bundled frontal-face detector, estimates the dominant face's average horizontal position, and places the 9:16 crop around that person. If no face is found, the video is portrait/square, or detection cannot run, rendering safely falls back to the existing centre crop. This is face-aware framing, not continuous multi-person tracking; a future tracking implementation still needs temporal target selection and motion smoothing.
