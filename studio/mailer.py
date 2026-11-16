@@ -34,29 +34,29 @@ def _html(title: str, intro: str, button: str, link: str, outro: str, logo_src: 
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light only"><title>{e(title)}</title></head>
-<body style="margin:0;padding:0;background:#F4EEEA;-webkit-text-size-adjust:100%">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#F4EEEA">{e(intro)}</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4EEEA"><tr><td align="center" style="padding:36px 14px">
+<body style="margin:0;padding:0;background:#F3F1FF;-webkit-text-size-adjust:100%">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#F3F1FF">{e(intro)}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F3F1FF"><tr><td align="center" style="padding:36px 14px">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px">
     <tr><td style="padding:0 6px 22px"><a href="{e(site)}" style="text-decoration:none">
       <span style="font-family:{font};font-size:25px;font-weight:800;letter-spacing:-1px;color:#17182A">Clip<span style="color:#7865DB">Nova</span></span></a></td></tr>
-    <tr><td style="background:#ffffff;border-radius:18px;border:1px solid #EAE2DC;padding:36px 34px">
+    <tr><td style="background:#ffffff;border-radius:18px;border:1px solid #E2DDF4;padding:36px 34px">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-        <tr><td style="font-family:{font};font-size:24px;line-height:1.25;font-weight:700;color:#2A1A12;padding-bottom:12px">{e(title)}</td></tr>
-        <tr><td style="font-family:{font};font-size:16px;line-height:1.65;color:#5A4A40;padding-bottom:28px">{e(intro)}</td></tr>
+        <tr><td style="font-family:{font};font-size:24px;line-height:1.25;font-weight:700;color:#17182A;padding-bottom:12px">{e(title)}</td></tr>
+        <tr><td style="font-family:{font};font-size:16px;line-height:1.65;color:#4B4962;padding-bottom:28px">{e(intro)}</td></tr>
         <tr><td style="padding-bottom:28px">
-          <table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="border-radius:12px;background:#FF8B33">
-            <a href="{e(link)}" style="display:inline-block;padding:14px 28px;font-family:{font};font-size:16px;font-weight:700;color:#2A1A12;text-decoration:none;border-radius:12px">{e(button)}</a>
+          <table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="border-radius:12px;background:#8D6BFF">
+            <a href="{e(link)}" style="display:inline-block;padding:14px 28px;font-family:{font};font-size:16px;font-weight:700;color:#17182A;text-decoration:none;border-radius:12px">{e(button)}</a>
           </td></tr></table></td></tr>
-        <tr><td style="font-family:{font};font-size:14px;line-height:1.6;color:#7A6A60;padding-bottom:22px">{e(outro)}</td></tr>
-        <tr><td style="border-top:1px solid #EFE8E3;padding-top:18px;font-family:{font};font-size:12px;line-height:1.6;color:#9C8A7E">
-          Button not working? Copy this link into your browser:<br><a href="{e(link)}" style="color:#A9480A;word-break:break-all">{e(link)}</a></td></tr>
+        <tr><td style="font-family:{font};font-size:14px;line-height:1.6;color:#74708A;padding-bottom:22px">{e(outro)}</td></tr>
+        <tr><td style="border-top:1px solid #E5E1F0;padding-top:18px;font-family:{font};font-size:12px;line-height:1.6;color:#8A86A0">
+          Button not working? Copy this link into your browser:<br><a href="{e(link)}" style="color:#6B56C8;word-break:break-all">{e(link)}</a></td></tr>
       </table></td></tr>
-    <tr><td align="center" style="padding:24px 10px 0;font-family:{font};font-size:12px;line-height:1.7;color:#9C8A7E">
+    <tr><td align="center" style="padding:24px 10px 0;font-family:{font};font-size:12px;line-height:1.7;color:#8A86A0">
       You're getting this because of your ClipNova account. We only email you about your account.<br>
-      <a href="{e(site)}" style="color:#7A6A60;text-decoration:underline">ClipNova</a> &nbsp;·&nbsp;
-      <a href="{e(site)}/privacy" style="color:#7A6A60;text-decoration:underline">Privacy</a> &nbsp;·&nbsp;
-      <a href="{e(site)}/terms" style="color:#7A6A60;text-decoration:underline">Terms</a></td></tr>
+      <a href="{e(site)}" style="color:#74708A;text-decoration:underline">ClipNova</a> &nbsp;·&nbsp;
+      <a href="{e(site)}/privacy" style="color:#74708A;text-decoration:underline">Privacy</a> &nbsp;·&nbsp;
+      <a href="{e(site)}/terms" style="color:#74708A;text-decoration:underline">Terms</a></td></tr>
   </table></td></tr></table></body></html>"""
 
 
