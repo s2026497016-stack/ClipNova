@@ -825,6 +825,56 @@ dialog[open]{animation:fadein .16s ease}
   .ai-big{font-size:24px}
 }
 </style>
+
+<style id="clipnova-studio-refresh">
+/* ClipNova original studio direction — layered over the inherited workflow styles. */
+:root{--brand:#c7ff54;--brand-press:#b4ed3c;--brand-ink:#11150b;--brand-soft:#efffd2;--brand-line:#c7e99a;--brand-deep:#577b1d;--frame:#10120f;--frame-2:#1b2018;--frame-line:rgba(255,255,255,.09);--frame-text:#f2f5ed;--frame-dim:#929b89;--bg:#f5f6f2;--muted:#eef0e9;--line:#e4e7de;--line-2:#d5dacd;--text:#171b14;--dim:#737b6c;--faint:#9aa190;--r-lg:20px;--r:14px;--r-sm:10px;color-scheme:light}
+body{background:#10120f;font-family:Inter,Geist,system-ui,sans-serif}
+.app{grid-template-columns:252px minmax(0,1fr);gap:0}
+.side{padding:22px 14px 16px;background:#10120f}
+.side-head{padding:4px 9px 30px}.side-head .logo{height:32px}
+.side .nav{gap:5px}.nav h4{padding:19px 12px 7px;text-transform:uppercase;letter-spacing:.13em;font-size:10px;font-weight:700;color:#697260}
+.nav-item{min-height:43px;padding:0 12px;border-radius:11px;color:#c7cebf;font-size:13px;font-weight:550;gap:12px}
+.nav-item svg{color:#8d9882;width:18px;height:18px}
+.nav-item:hover{background:#1a2017;color:#fff}
+.nav-item.on{background:#c7ff54;color:#12160d;font-weight:700;box-shadow:0 5px 18px #c7ff5420}
+.nav-item.on svg{color:#12160d}
+.side-foot{border-color:#ffffff12;padding-top:14px}
+.side-card{border:1px solid #ffffff10;background:#191e16;border-radius:13px;padding:13px;color:#aab49e}
+.side-card b{color:#eff5e7}
+main{margin:0;border-radius:0;background:#f5f6f2;height:100vh;scrollbar-gutter:stable}
+.topbar{min-height:72px;padding:14px 38px;background:rgba(250,251,247,.92);backdrop-filter:blur(18px);border-bottom:1px solid #e7e9e1}
+.topbar h1{font-size:17px;font-weight:750;letter-spacing:-.035em;color:#171b14}
+.topbar p{font-size:12px;color:#7b8374;margin-top:3px}
+.content{max-width:1480px;padding:34px 42px 80px}
+.btn{border-radius:10px;border-color:#dce1d5;font-weight:650;transition:transform .16s,background .16s,box-shadow .16s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 5px 16px #18200c0c}
+.btn.primary{background:#c7ff54;border-color:#c7ff54;color:#11150b}
+.btn.primary:hover{background:#b8ef43}
+.btn.dark{background:#151a12;border-color:#151a12;color:#fff}
+.card{border-color:#e5e8df;border-radius:16px;box-shadow:0 8px 28px #26301908;padding:23px}
+.card>h2,.card-head h2{font-weight:750;letter-spacing:-.025em;color:#1a2015}
+.hero{padding:48px 30px 58px;text-align:left;background:radial-gradient(ellipse at 72% 0%,#e8f6cb 0,transparent 42%),linear-gradient(135deg,#f6f8f1,#eff2e9);border:1px solid #e7ebdf;border-radius:20px;margin:24px 32px 0;overflow:hidden}
+.hero h2{font-size:clamp(30px,4vw,46px);font-weight:800;letter-spacing:-.055em;line-height:1.04;max-width:660px;color:#151b10}
+.hero>p{margin:14px 0 26px;max-width:580px;color:#68715f;font-size:15px;line-height:1.65}
+.composer{max-width:790px;margin:0;background:#fff;border:1px solid #dce3d3;border-radius:15px;box-shadow:0 12px 34px #1d29100c}
+.composer-input input,.composer-input input:focus{height:64px;font-size:15px}
+.composer-input>svg{color:#7c876f}
+.composer-bar{padding:5px 12px 12px}
+.chip{background:#f0f3e9;color:#536044;border-radius:9px}
+.pill.brand{background:#c7ff54;color:#151a0d}
+.tabbtn.on{color:#1b2411}
+.tabbtn.on::after{background:#9acb35}
+.tabbtn.on svg{color:#638c20}
+.empty{background:#fafbf8;border-color:#dce3d5;border-radius:14px}
+input:focus,select:focus,textarea:focus{border-color:#9acb35!important;box-shadow:0 0 0 3px #c7ff5426}
+dialog{border:1px solid #dfe5d8;border-radius:18px;box-shadow:0 28px 90px #10180d35}
+#toasts>div{border-radius:12px}
+.app.mini{grid-template-columns:78px minmax(0,1fr)}
+@media(max-width:900px){.content{padding:25px 24px 60px}.topbar{padding:12px 24px}}
+@media(max-width:640px){.app{grid-template-columns:1fr}.side{padding:14px 12px}.content{padding:20px 16px 48px}.hero{margin:14px 14px 0;padding:34px 20px 38px}.hero h2{font-size:31px}.topbar{padding:10px 16px;min-height:62px}main{height:100vh}}
+</style>
+
 </head>
 <body>
 <div class="app" id="app">
