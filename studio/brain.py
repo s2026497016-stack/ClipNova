@@ -384,8 +384,12 @@ def judge_transcript(words, start, now, title="", uploader="", min_len=15, max_l
     lines = make_lines(words)
     if len(lines) < 3:
         return [], 0
+    prior_titles = [c.get("title", "") for c in existing if isinstance(c, dict) and c.get("title")]
+    title_context = ("\nPreviously generated clip titles (do not repeat or closely paraphrase):\n- "
+                     + "\n- ".join(_safe(x, 90) for x in prior_titles[-30:])) if prior_titles else ""
     prompt = (TRANSCRIPT_JUDGE.format(title=_safe(title) or "unknown", uploader=_safe(uploader) or "unknown", start=start, now=now,
                                       n=n, must=MUST_PICK if must else NOT_MUST)
+              + title_context
               + RULES.format(min_len=min_len, max_len=max_len, transcript=_fmt(lines)))
     out, _model, spent = ask_ai(prompt, purpose="Live: words judge")
     clips = []
