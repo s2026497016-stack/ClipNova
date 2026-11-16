@@ -25,7 +25,7 @@ LOGO = config.ROOT / "web" / "brand" / "logo-email.png"   # PNG: email apps don'
 LOGO_CID = "clipnova-logo"
 
 
-def _html(title: str, intro: str, button: str, link: str, outro: str, logo_src: str = "cid:" + LOGO_CID) -> str:
+def _html(title: str, intro: str, button: str, link: str, outro: str, logo_src: str = "") -> str:
     """The branded email: logo, a white card with the message and one big button, and a quiet footer.
     Tables and inline styles only, because that is what every email app renders the same way."""
     e = html.escape
@@ -39,7 +39,7 @@ def _html(title: str, intro: str, button: str, link: str, outro: str, logo_src: 
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4EEEA"><tr><td align="center" style="padding:36px 14px">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px">
     <tr><td style="padding:0 6px 22px"><a href="{e(site)}" style="text-decoration:none">
-      <img src="{e(logo_src)}" width="138" height="38" alt="ClipNova" style="display:block;border:0;width:138px;height:38px"></a></td></tr>
+      <span style="font-family:{font};font-size:25px;font-weight:800;letter-spacing:-1px;color:#17182A">Clip<span style="color:#7865DB">Nova</span></span></a></td></tr>
     <tr><td style="background:#ffffff;border-radius:18px;border:1px solid #EAE2DC;padding:36px 34px">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
         <tr><td style="font-family:{font};font-size:24px;line-height:1.25;font-weight:700;color:#2A1A12;padding-bottom:12px">{e(title)}</td></tr>
