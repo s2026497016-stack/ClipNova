@@ -1752,7 +1752,7 @@ function clipHtml(j, c) {
     <button class="shot" data-act="openclip" ${a} aria-label="Open clip: ${esc(c.title || c.hook)}">${body}
       <span class="badge l ${scoreCls(c.score)}" title="AI score">${c.score || "Hand"}</span><span class="badge r">${fmt(c.end - c.start)}</span></button>
     <div class="clip-body">
-      <div class="hook">${esc(c.hook || "Untitled clip")}</div>
+      <div class="hook">${c.tier === "top_pick" ? "★ TOP PICK · " : "REGULAR · "}${esc(c.hook || "Untitled clip")}</div>
       <div class="ttl">${esc(c.title)}</div>
       ${postPills(c) ? `<div class="row" style="gap:4px">${postPills(c)}</div>` : ""}
       <div class="clip-foot">
@@ -1775,6 +1775,8 @@ function everyPick(cid, v) {
 }
 function liveHtml(j) {
   const L = j.live || {elapsed:0, lines:[], level:[], chat:null, checks:0, buffer_sec:0, pending_clips:0};
+  const topPicks = (j.clips || []).filter(c => c.tier === "top_pick").reverse();
+  const regularClips = (j.clips || []).filter(c => c.tier !== "top_pick").reverse();
   return `<div class="livecard">
     <div class="lc-head"><div class="lc-title"><span class="pill live"><span class="dot"></span>Live</span>
         <h3>${esc(j.title || j.source.name)}</h3><p class="sub">${esc(j.uploader)}${j.uploader ? " · " : ""}${esc(j.stage)}</p></div>
@@ -1791,7 +1793,8 @@ function liveHtml(j) {
       <div class="meter"><h4>Latest AI decisions</h4><div class="said" style="justify-content:flex-start;color:var(--text)">${(L.verdicts || []).length ? L.verdicts.slice(0, 4).map(v => `<div>${fmt(v.t)} · ${v.transcript != null ? "words " + v.transcript : ""}${v.reaction != null ? " · reaction " + v.reaction : ""} · <span class="sub">${esc(v.result)}</span></div>`).join("") : "<div class='sub'>First check soon…</div>"}</div></div>
       <div class="meter"><h4>What was just said</h4><div class="said">${L.lines.length ? L.lines.map(t => `<div>${esc(t)}</div>`).join("") : "<div>Listening…</div>"}</div></div>
     </div>${j.error ? `<div class="err">${esc(j.error)}</div>` : ""}</div>
-    ${j.clips.length ? `<div class="grid" style="margin-bottom:28px">${[...j.clips].reverse().map(c => clipHtml(j, c)).join("")}</div>` : ""}`;
+    ${topPicks.length ? `<section style="margin:18px 0"><h3>★ Top Picks <span class="sub">Strongest moments</span></h3><div class="grid">${topPicks.map(c => clipHtml(j, c)).join("")}</div></section>` : ""}
+    ${regularClips.length ? `<section style="margin:18px 0"><h3>Regular Clips <span class="sub">More moments from the stream</span></h3><div class="grid">${regularClips.map(c => clipHtml(j, c)).join("")}</div></section>` : ""}`;
 }
 function jobHtml(j) {
   if (j.status === "live") return liveHtml(j);
@@ -1910,15 +1913,15 @@ function drawCreatorForm() {
   box.innerHTML = `<div class="card"><h2>Their stream</h2><p class="help">Where to record from, and whether to start by itself.</p>
       <div class="chans">${channelRows(c)}</div>
       <div class="fields" style="margin-top:14px"><label class="sw span"><input type="checkbox" data-k="auto_watch" ${c.auto_watch ? "checked" : ""}><span>Record automatically when they go live<small>Checks straight away, then every two minutes.</small></span></label></div></div>
-    <div class="card"><h2>How the AI decides</h2><p class="help">Two separate AI checks. The words judge reads only what was said. The reaction judge sees only how loud the streamer got and how busy chat was, never the words.</p>
+    <div class="card"><h2>How the AI decides</h2><p class="help">Regular Clips are made from worthwhile moments found in the transcript. Top Picks are separated out when a high-scoring moment also has a strong reaction signal.</p>
       <div class="fields">
         <label class="f">Check the live stream every<select data-k="ai_every_min">${opts({1:"1 minute", 2:"2 minutes", 3:"3 minutes", 5:"5 minutes", 10:"10 minutes"}, c.ai_every_min || 3)}</select><small class="sub" id="costhint" style="font-weight:400">${costHint(c.ai_every_min)}</small></label>
         <p class="help span" style="margin:0">On top of that, the AI always looks straight away when the stream suddenly gets louder or chat gets busier, and when someone says "clip" or "clip it".</p>
-        <label class="f">Most live clips per hour<input data-k="live_per_hour" type="number" min="1" max="60" value="${c.live_per_hour}"></label>
+        <label class="f">Maximum live clips per hour<input data-k="live_per_hour" type="number" min="1" max="60" value="${c.live_per_hour}"></label>
         <label class="f">Make a clip when<select data-k="decide_mode">${opts({both:"Both judges say yes", either:"Both say yes, or the words judge is very sure (90+)"}, c.decide_mode)}</select></label>
-        <label class="f">Words judge must score at least<input data-k="min_score" type="number" min="0" max="100" value="${c.min_score}"></label>
+        <label class="f">Minimum score for a Regular Clip<input data-k="min_score" type="number" min="0" max="100" value="${c.min_score}"></label>
         <label class="f">Make sure there's a live clip at least every<select data-k="must_clip_min">${opts({0:"Off", 15:"15 minutes", 30:"30 minutes", 60:"1 hour", 120:"2 hours"}, c.must_clip_min)}</select></label>
-        <label class="f">Minimum gap between live clips (minutes)<input data-k="min_gap_min" type="number" min="0" max="60" value="${c.min_gap_min}"></label>
+        <label class="f">Minimum gap between generated clips (minutes)<input data-k="min_gap_min" type="number" min="0" max="60" value="${c.min_gap_min}"></label>
         <label class="f span">Always clip the last 30 seconds when someone says<input data-k="trigger_words" value="${esc(c.trigger_words)}" placeholder="clip that, clip it"><small class="sub" style="font-weight:400">Separate phrases with commas. Matched on the transcript, so it needs no AI call.</small></label>
       </div></div>
     <div class="card"><h2>Clips</h2><p class="help">How this creator's clips look.</p>
