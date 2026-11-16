@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b0c12">
+  <title>ClipNova — Creator Studio</title>
+  <meta name="description" content="ClipNova creator studio for turning long videos and streams into short-form content.">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <a class="brand" href="#"><span class="brand-mark">C</span><span>clip<span class="accent">nova</span><small>CREATOR STUDIO</small></span></a>
+      <div class="workspace"><span class="workspace-icon">✦</span><span><b>My workspace</b><small>Personal</small></span><span class="chevron">⌄</span></div>
+      <p class="nav-label">WORKSPACE</p>
+      <nav>
+        <button class="nav-item active" data-view="home"><span>⌂</span> Overview</button>
+        <button class="nav-item" data-view="projects"><span>▤</span> Projects</button>
+        <button class="nav-item" data-view="library"><span>▧</span> Clip library</button>
+      </nav>
+      <p class="nav-label">CREATE</p>
+      <nav>
+        <button class="nav-item" data-view="studio"><span>✂</span> Clip studio</button>
+        <button class="nav-item" data-view="live"><span>◉</span> Live sources <i class="soon">SOON</i></button>
+      </nav>
+      <div class="sidebar-bottom"><div class="plan"><span class="plan-icon">✧</span><b>ClipNova Starter</b><small>Local preview workspace</small><div class="plan-line"><span></span></div></div><div class="profile"><div class="avatar">M</div><span><b>My account</b><small>Creator workspace</small></span><span class="dots">•••</span></div></div>
+    </aside>
+    <main class="main">
+      <header class="topbar"><div class="crumb">Workspace <span>/</span> <b id="crumb-current">Overview</b></div><div class="top-actions"><span class="status"><i></i> Local workspace</span><button class="icon-btn" aria-label="Notifications">♧</button><div class="avatar small">M</div></div></header>
+      <section class="view active" id="view-home">
+        <div class="welcome"><div><p class="eyebrow">YOUR CREATOR WORKSPACE</p><h1>Make your next <span class="gradient">great clip.</span></h1><p class="sub">Bring in a video, find the moment, and shape it into something worth sharing.</p></div><button class="primary" data-goto="studio">＋ New project</button></div>
+        <div class="hero-grid">
+          <div class="import-card"><div class="card-top"><div><span class="eyebrow">START CREATING</span><h2>Bring your video to ClipNova</h2><p>Start with a recording from your device.</p></div><span class="upload-icon">↑</span></div>
+            <label class="dropzone" id="dropzone" for="video-file"><span class="cloud">⇧</span><b>Drop a video here or <u>browse files</u></b><small>MP4, MOV, WEBM · Choose a file stored on your device</small><input id="video-file" type="file" accept="video/*"></label>
+            <div class="divider-label"><span></span> OR <span></span></div>
+            <div class="url-row"><input id="source-url" type="url" placeholder="Paste a YouTube, Twitch or Kick URL" disabled><button class="secondary" disabled title="URL importing will be connected in the backend milestone">Import URL</button></div><small class="muted">Online source importing is not connected yet.</small>
+          </div>
+          <div class="side-card"><div class="side-card-head"><span class="eyebrow">THE CLIPNOVA WORKFLOW</span><span class="spark">✦</span></div><h3>From long-form to share-worthy.</h3><div class="steps"><div class="step"><span>01</span><div><b>Bring in your source</b><small>Upload a recording or connect a stream.</small></div></div><div class="step"><span>02</span><div><b>Find the moments</b><small>Review AI-suggested highlights.</small></div></div><div class="step"><span>03</span><div><b>Polish and publish</b><small>Edit, caption and export your clips.</small></div></div></div><div class="note">AI detection, stream connections and cloud exports are planned backend features. This preview never pretends they are active.</div></div>
+        </div>
+        <div class="section-heading"><div><h2>Recent projects</h2><p>Your latest work appears here.</p></div><button class="text-btn" data-goto="projects">View all →</button></div>
+        <div id="recent-projects" class="project-grid"><div class="empty-state"><span>▤</span><b>No projects yet</b><small>Upload your first video to get started.</small><button class="secondary" data-goto="studio">Create a project</button></div></div>
+      </section>
+      <section class="view" id="view-studio">
+        <div class="page-heading"><div><p class="eyebrow">CLIP STUDIO</p><h1>Start a new project</h1><p class="sub">Upload a source video to preview it and mark a clip range.</p></div></div>
+        <div class="studio-layout">
+          <div class="preview-panel"><div class="panel-head"><b>Source preview</b><span id="media-state" class="pill">No source loaded</span></div><div class="video-stage" id="video-stage"><div class="video-empty"><span>▶</span><b>Your video preview</b><small>Upload a video to begin.</small></div><video id="video-preview" controls playsinline hidden></video></div><div class="preview-meta"><span id="video-name">No video selected</span><span id="video-duration">—</span></div></div>
+          <div class="settings-panel"><div class="panel-head"><b>Clip settings</b><span class="pill">Manual preview</span></div><label class="field-label" for="project-name">Project name</label><input class="field" id="project-name" value="Untitled project" maxlength="70"><div class="two-fields"><div><label class="field-label" for="clip-start">Start (seconds)</label><input class="field" id="clip-start" type="number" min="0" step=".1" value="0"></div><div><label class="field-label" for="clip-end">End (seconds)</label><input class="field" id="clip-end" type="number" min="0" step=".1" value="30"></div></div><label class="field-label" for="aspect">Output format</label><select class="field" id="aspect"><option value="9:16">Vertical · 9:16</option><option value="1:1">Square · 1:1</option><option value="16:9">Landscape · 16:9</option></select><div class="info-box"><b>What works in this build?</b><p>Local video preview, project naming and manual in/out points. AI highlight generation and rendered MP4 export require the processing backend.</p></div><button class="primary full" id="save-project" disabled>Save project</button><p class="form-feedback" id="form-feedback" role="status"></p></div>
+        </div>
+      </section>
+      <section class="view" id="view-projects"><div class="page-heading"><div><p class="eyebrow">YOUR WORK</p><h1>Projects</h1><p class="sub">All projects saved in this browser.</p></div><button class="primary" data-goto="studio">＋ New project</button></div><div id="all-projects" class="project-grid"></div></section>
+      <section class="view" id="view-library"><div class="page-heading"><div><p class="eyebrow">YOUR CONTENT</p><h1>Clip library</h1><p class="sub">Your saved clip ranges and project sources.</p></div></div><div id="library-items" class="library-list"></div></section>
+      <section class="view" id="view-live"><div class="page-heading"><div><p class="eyebrow">LIVE SOURCES</p><h1>Clip streams as they happen.</h1><p class="sub">The live ingestion service is planned for a later milestone.</p></div></div><div class="coming-card"><span>◉</span><h2>Live clipping is on the roadmap</h2><p>Provider connections, rolling capture, stream health and near-live highlight processing will be implemented after the upload and editing pipeline is verified.</p></div></section>
+      <footer>CLIPNOVA <span>•</span> Creator Studio <span class="footer-right">Built for creators.</span></footer>
+    </main>
+  </div>
+  <script src="assets/app.js"></script>
+</body></html>
