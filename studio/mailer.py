@@ -21,7 +21,7 @@ def ready() -> bool:
     return bool(config.SMTP_HOST and config.MAIL_FROM)
 
 
-LOGO = config.ROOT / "web" / "brand" / "logo-email.png"   # PNG: email apps don't show SVG
+LOGO = config.ROOT / "web" / "brand" / "clipnova-email.png"   # PNG: email apps don't show SVG
 LOGO_CID = "clipnova-logo"
 
 
