@@ -370,7 +370,7 @@ class Session:
         title, up = self.job["title"], self.job["uploader"]
         try:
             cands, tok = brain.judge_transcript(win, ws, now, title, up, st["min_len"], st["max_len"], self.job["clips"],
-                                                n=1 if every <= 2 else 2, must=must)  # Auto (0) asks for one
+                                                n=3 if every <= 2 else 2, must=must)  # Auto (0) asks for one
         except Exception as e:  # noqa: BLE001
             self.job["ai"]["last_error"] = str(e)[-200:]
             return self._verdict(verdict, "AI error: " + str(e)[-80:])
@@ -388,31 +388,27 @@ class Session:
             self.checks += 1
             self.tokens += tok2
         except Exception as e:  # noqa: BLE001
+            # The transcript judge can still create regular clips when reaction analysis is unavailable.
             sig = []
             self.job["ai"]["last_error"] = str(e)[-200:]
         added = 0
         for c in keep:
             match = [m for m in sig if m["end"] >= c["start"] - 10 and m["start"] <= c["end"] + 10 and m["score"] >= 50]
             rs = max((m["score"] for m in match), default=0)
-            verdict["reaction"] = rs
-            both = bool(match)
-            ok = both or (st["decide_mode"] == "either" and c["score"] >= 90) or (must and added == 0)
-            if not ok:
-                self.rejected += 1
-                self._verdict(verdict, "Reaction judge said no, not clipped")
-                continue
+            verdict["reaction"] = rs or None
             if any(abs(c["start"] - k["start"]) < st["min_gap_min"] * 60 for k in self.job["clips"]):
                 self._verdict(verdict, "Too close to the last clip")
                 continue
-            why = "Both judges agreed" if both else ("Words judge was very sure" if c["score"] >= 90 and
-                                                     st["decide_mode"] == "either" else "Forced: no clip for a while")
-            c["judges"] = {"words": c["score"], "reaction": rs or None, "why": why}
-            c["reason"] = f"{c['reason']} ({why.lower()}.)"
+            # Top Picks are deliberately selective; every other acceptable AI moment is a Regular Clip.
+            tier = "top_pick" if c["score"] >= 85 and rs >= 60 else "regular"
+            c["tier"] = tier
+            c["judges"] = {"words": c["score"], "reaction": rs or None,
+                           "why": "Strong words and reaction" if tier == "top_pick" else "Regular AI highlight"}
             self._add_clip(c)
-            self._verdict(verdict, "Clipped: " + why.lower())
+            self._verdict(verdict, "Top Pick: strong words and reaction" if tier == "top_pick" else "Regular clip created")
             added += 1
             must = False
-            if added >= (1 if every <= 2 else 2):
+            if added >= (3 if every <= 2 else 2):
                 break
 
     def _verdict(self, v, result):
