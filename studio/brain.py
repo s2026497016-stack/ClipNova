@@ -41,6 +41,12 @@ Channel: {uploader}
 
 Pick up to {n} moments that would work as standalone clips for someone who has never seen the stream:
 funny moments, fails, clutch plays, rage, shock, hot takes, or a short story with a payoff.
+
+For clearly identified gameplay, actively consider grounded game moments such as an ace, clutch round,
+elimination, team wipe, boss defeat, rare drop, speedrun personal best, or last-second win. Use only events
+supported by the transcript or live-chat/reaction signals supplied to you. A loud reaction alone is not proof
+of a kill, win, headshot, named game, or other on-screen event. Never invent visual details you cannot see.
+If the source is not clearly gameplay, judge it as a general stream or video.
 """
 
 LIVE_NOTE = """
@@ -336,6 +342,9 @@ you will see it again in the next check.
 {must}
 Pick up to {n} moments that would work as standalone clips for someone who has never seen the stream:
 funny moments, fails, clutch plays, rage, shock, hot takes, or a short story with a payoff.
+For clearly identified gameplay, consider an ace, clutch round, elimination, team wipe, boss defeat,
+rare drop, speedrun personal best, or last-second win only when the spoken words support it.
+Never infer a specific on-screen event from a shout or reaction alone; you cannot see the video.
 """
 MUST_PICK = "This time you MUST return the single best moment in this stretch, even if it is only decent."
 NOT_MUST = "Most checks should return []. Only return a moment you would stop scrolling for."
