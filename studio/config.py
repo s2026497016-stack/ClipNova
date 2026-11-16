@@ -149,8 +149,7 @@ SESSION_DAYS = int(env("CLIPNOVA_SESSION_DAYS", "30"))
 # on your own computer. On a server that other people can reach, set CLIPNOVA_ACCOUNTS=1: everyone then signs up
 # and signs in, and each person only sees their own videos.
 ACCOUNTS = env("CLIPNOVA_ACCOUNTS", "0") == "1"
-# The two buttons along the top of the dashboard: the project's code, and where to follow its maker (feedback goes
-# there too). Set either to an empty value to hide that button, or point them at your own pages in a fork.
+# The dashboard links back to the ClipNova source repository. The optional maker/social link is intentionally disabled.
 REPO_URL = env("CLIPNOVA_REPO_URL", "https://github.com/s2026497016-stack/ClipNova").strip()
 FOLLOW_URL = ""
 
