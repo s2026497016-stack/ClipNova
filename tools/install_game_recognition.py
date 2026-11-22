@@ -77,9 +77,7 @@ def main():
     """Text from the video (title, channel, speech) on its way into a prompt: one line, and unable to close our tags."""
     return _CTRL.sub(" ", str(v or "")).replace("<", "‹").strip()[:limit]
 '''
-    if "def _game_context(title):" not in brain:
-        brain = replace_once(brain, safe_anchor, safe_anchor + HELPER, "safe helper")
-
+    has_helper = "def _game_context(title):" in brain
     replacements = [
         ('''prompt = (HEAD.format(title=_safe(title) or "unknown", uploader=_safe(uploader) or "unknown", n=per_window)
                   + title_context''',
@@ -95,7 +93,8 @@ def main():
          r'''              + _game_context(title)
               + f"Channel: {uploader or 'unknown'}\n\nReturn exactly one item describing it. Set start and end to 0."''', "manual prompt"),
     ]
-    if "_game_context(title)" not in brain:
+    if not has_helper:
+        brain = replace_once(brain, safe_anchor, safe_anchor + HELPER, "safe helper")
         for old, new, label in replacements:
             brain = replace_once(brain, old, new, label)
     elif brain.count("_game_context(title)") != 4:
