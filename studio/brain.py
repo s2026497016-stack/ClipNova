@@ -94,6 +94,52 @@ def _safe(v, limit=200):
     return _CTRL.sub(" ", str(v or "")).replace("<", "‹").strip()[:limit]
 
 
+# Game names are detected from the source title only. This is context, never proof
+# that a particular event happened on screen.
+_GAME_CATALOG = (
+    ("Grand Theft Auto VI", ("gta vi", "gta 6"), "GTAVI"),
+    ("Grand Theft Auto V", ("gta v", "gta 5"), "GTAV"),
+    ("Fortnite", ("fortnite",), "Fortnite"),
+    ("Minecraft", ("minecraft",), "Minecraft"),
+    ("Valorant", ("valorant",), "Valorant"),
+    ("Elden Ring", ("elden ring",), "EldenRing"),
+    ("Call of Duty: Warzone", ("call of duty warzone", "cod warzone", "warzone"), "CODWarzone"),
+    ("Apex Legends", ("apex legends",), "ApexLegends"),
+    ("Counter-Strike 2", ("counter-strike 2", "counter strike 2", "cs2"), "CounterStrike2"),
+    ("PUBG: Battlegrounds", ("pubg battlegrounds", "pubg"), "PUBG"),
+    ("League of Legends", ("league of legends",), "LeagueOfLegends"),
+    ("Dota 2", ("dota 2",), "Dota2"),
+    ("Overwatch 2", ("overwatch 2",), "Overwatch2"),
+    ("Rocket League", ("rocket league",), "RocketLeague"),
+    ("Rainbow Six Siege", ("rainbow six siege", "r6 siege"), "RainbowSixSiege"),
+    ("Red Dead Redemption 2", ("red dead redemption 2", "rdr2"), "RDR2"),
+    ("Cyberpunk 2077", ("cyberpunk 2077",), "Cyberpunk2077"),
+    ("The Last of Us", ("the last of us",), "TheLastOfUs"),
+    ("God of War", ("god of war",), "GodOfWar"),
+    ("Resident Evil 4", ("resident evil 4", "re4"), "ResidentEvil4"),
+    ("Roblox", ("roblox",), "Roblox"),
+    ("Among Us", ("among us",), "AmongUs"),
+    ("Call of Duty", ("call of duty", "cod"), "CallOfDuty"),
+)
+
+
+def _game_context(title):
+    """Return a cautious game hint when the source title clearly names a known game."""
+    source = _safe(title, 240).lower()
+    for game, aliases, hashtag in _GAME_CATALOG:
+        for alias in aliases:
+            pattern = r"(?<![a-z0-9])" + re.escape(alias).replace(r"\ ", r"\s+") + r"(?![a-z0-9])"
+            if re.search(pattern, source, re.IGNORECASE):
+                return (
+                    f"\nLikely game context from the video title: {game}. "
+                    f"Suggested game hashtag: {hashtag}. "
+                    "This is title metadata only, not proof of an event. Use it as a hint, "
+                    "not a filter; only describe gameplay events supported by the transcript "
+                    "or supplied reaction signals. Never invent visual details.\n"
+                )
+    return ""
+
+
 def _text(v, limit):
     """Text the AI wrote, on its way to a post or the screen: one line, no links or @handles, and a firm length."""
     s = _LINKS.sub("", _CTRL.sub(" ", str(v or "")))
@@ -271,6 +317,7 @@ def find_clips(words, db, duration, title="", uploader="", max_clips=6, min_len=
         title_context = ("\nPreviously generated clip titles (do not repeat or closely paraphrase):\n- "
                          + "\n- ".join(_safe(x, 90) for x in used_titles[-30:])) if used_titles else ""
         prompt = (HEAD.format(title=_safe(title) or "unknown", uploader=_safe(uploader) or "unknown", n=per_window)
+                  + _game_context(title)
                   + title_context
                   + RULES.format(min_len=min_len, max_len=max_len, transcript=_fmt(chunk)))
         try:
@@ -309,6 +356,7 @@ def find_live_clips(words, z, now, chat=None, title="", uploader="", min_len=15,
     title_context = ("\nPreviously generated clip titles (do not repeat or closely paraphrase):\n- "
                      + "\n- ".join(_safe(x, 90) for x in prior_titles[-30:])) if prior_titles else ""
     prompt = (HEAD.format(title=_safe(title) or "unknown", uploader=_safe(uploader) or "unknown", n=2)
+              + _game_context(title)
               + LIVE_NOTE.format(now=now) + title_context
               + RULES.format(min_len=min_len, max_len=max_len, transcript=_fmt(lines)))
     out, _model, spent = ask_ai(prompt, purpose="Live check")
@@ -328,7 +376,8 @@ def describe(text, title="", uploader=""):
     if len(text.split()) < 4:
         return blank
     prompt = (f"A streamer's viewer clipped this moment by hand.\nVideo title: {title or 'unknown'}\n"
-              f"Channel: {uploader or 'unknown'}\n\nReturn exactly one item describing it. Set start and end to 0."
+              + _game_context(title)
+              + f"Channel: {uploader or 'unknown'}\n\nReturn exactly one item describing it. Set start and end to 0."
               + RULES.format(min_len=0, max_len=0, transcript=text))
     try:
         out, _m, _u = ask_ai(prompt, purpose="Hand clip: title and hook")
