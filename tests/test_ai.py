@@ -113,6 +113,14 @@ with ctx.as_user(u1.id):
     check("gameplay highlight guidance stays grounded in evidence",
           "loud reaction alone is not proof" in brain.HEAD.lower()
           and "never infer a specific on-screen event" in brain.TRANSCRIPT_JUDGE.lower())
+    check("game title detects GTA VI", "Grand Theft Auto VI" in brain._game_context("GTA 6 live stream")
+          and "GTAVI" in brain._game_context("GTA 6 live stream"))
+    check("game title detects a known title with word boundaries", "Fortnite" in brain._game_context("Fortnite ranked gameplay"))
+    check("game detection does not match inside unrelated words", brain._game_context("A great total live stream") == "")
+    check("unknown video titles keep general-video behavior", brain._game_context("Just chatting with viewers") == "")
+    check("game context explicitly remains a hint, not proof",
+          "not proof" in brain._game_context("Minecraft survival stream").lower())
+
 with ctx.as_user(u2.id):
     check("another user sees none of it", usage.summary({})["calls_total"] == 0)
 
