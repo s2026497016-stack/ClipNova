@@ -73,10 +73,7 @@ def main():
         print("Game-title recognition is already installed. No files changed.")
         return 0
 
-    safe_anchor = '''def _safe(v, limit=200):
-    """Text from the video (title, channel, speech) on its way into a prompt: one line, and unable to close our tags."""
-    return _CTRL.sub(" ", str(v or "")).replace("<", "‹").strip()[:limit]
-'''
+    safe_anchor = "def _text(v, limit):"
     has_helper = "def _game_context(title):" in brain
     replacements = [
         ('''prompt = (HEAD.format(title=_safe(title) or "unknown", uploader=_safe(uploader) or "unknown", n=per_window)
@@ -94,7 +91,7 @@ def main():
               + f"Channel: {uploader or 'unknown'}\n\nReturn exactly one item describing it. Set start and end to 0."''', "manual prompt"),
     ]
     if not has_helper:
-        brain = replace_once(brain, safe_anchor, safe_anchor + HELPER, "safe helper")
+        brain = replace_once(brain, safe_anchor, HELPER + "\n\n" + safe_anchor, "text helper insertion")
         for old, new, label in replacements:
             brain = replace_once(brain, old, new, label)
     elif brain.count("_game_context(title)") != 4:
