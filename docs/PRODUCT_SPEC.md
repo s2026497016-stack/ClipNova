@@ -83,6 +83,7 @@ Build one reliable video-creation workspace that takes a creator from source med
 
 ### Known gaps — do not describe these as finished
 - [ ] Gaming event recognition is not computer vision: current highlight selection uses transcript, audio loudness and available live-chat signals. It does not reliably identify kills, wins, headshots or game HUD events from pixels.
+- [x] Selected clips now receive optional visual-activity evidence (sampled motion, edge density and scene changes), saved with clip metadata and refreshed when a clip is re-rendered. This is descriptive visual evidence only; it does not recognize specific game events or change AI clip ranking.
 - [x] The clip editor now includes an interactive trim timeline with IN/OUT range controls, synchronized numeric fields, and a playhead that scrubs the rendered preview.
 - [ ] The editor is not yet a full multi-track nonlinear editor: independent movable audio/video/caption clips, keyframes, transitions, and layered compositing are still planned.
 - [ ] Smart face tracking now samples and smooths a dominant face position over time, but needs real-footage quality testing; it does not yet track identity through occlusion or support multiple people. Automatic speaker-aware reframing is not implemented.
