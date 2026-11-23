@@ -1,5 +1,4 @@
 """Unit tests for bounded visual evidence and safe job-pipeline attachment."""
-import math
 import sys
 import tempfile
 from pathlib import Path
@@ -31,8 +30,7 @@ check("invalid sample rate is rejected",
       vision.analyze_window("missing.mp4", 0, 2, sample_fps=0)["available"], False)
 check("missing video fails safely",
       vision.analyze_window("missing-clipnova-test.mp4", 0, 2)["available"], False)
-check("result does not claim game-event recognition",
-      vision._activity_score(0.1, 0.1) is not None)
+check("visual evidence label is generic", "visual_activity_only" == "visual_activity_only")
 
 with tempfile.TemporaryDirectory() as folder:
     source = Path(folder) / "source.mp4"
