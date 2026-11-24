@@ -188,6 +188,8 @@ def explain(e) -> str:
     name = (models() or ["?"])[0]
     if "404" in text or "not found" in low or "does not exist" in low or "unknown model" in low or "not_found" in low:
         return f"{label()} doesn't know the model \"{name}\". Open Settings, AI, press Find models and pick one from the list."
+    if "api key not valid" in low or "invalid api key" in low or "invalid key" in low:
+        return f"{label()} refused the key. Check that it is correct and that the required API is enabled for the key."
     if "401" in text or "403" in text or "api key" in low or "api_key" in low or "unauthorized" in low or "permission" in low:
         # Keep Google's actual, key-redacted response visible. The old generic message hid
         # whether the key was invalid, the API was disabled, or the key had API restrictions.

@@ -11,7 +11,7 @@ import traceback
 import uuid
 from pathlib import Path
 
-from . import brain, config, creators, ctx, load, media, render, roman, safe, transcribe, usage
+from . import brain, config, creators, ctx, load, media, render, roman, safe, transcribe, usage, vision
 
 class _FairQueue:
     """Whose video is next. Each person has their own line and the lines take turns, so someone who adds ten
@@ -361,6 +361,37 @@ def request_render(jid, cid, changes: dict):
     _q.put(("clip", jid, cid))
 
 
+def _attach_visual_evidence(job, clip):
+    """Attach optional visual activity evidence without changing clip selection."""
+    try:
+        offset = float(clip.get("src_offset", 0.0))
+        source_value = clip.get("src") or job.get("source_path")
+        if not source_value:
+            clip["visual"] = {"available": False, "reason": "source file unavailable"}
+            return
+
+        source = Path(source_value)
+        if not source.is_file():
+            clip["visual"] = {"available": False, "reason": "source file unavailable"}
+            return
+
+        start = max(0.0, float(clip["start"]) - offset)
+        end = float(clip["end"]) - offset
+        if end <= start:
+            clip["visual"] = {"available": False, "reason": "invalid clip time range"}
+            return
+
+        clip["visual"] = vision.analyze_window(
+            source, start, end,
+            sample_fps=0.5, max_samples=16, resize_width=320,
+        )
+    except Exception as exc:
+        clip["visual"] = {
+            "available": False,
+            "reason": f"visual analysis failed: {type(exc).__name__}",
+        }
+
+
 def render_one(job, clip, words):
     d = Path(job["dir"])
     clip["status"] = "rendering"
@@ -389,6 +420,8 @@ def render_one(job, clip, words):
         out = render.render_clip(src, d / "clips", clip["id"], local, near, job["width"], job["height"])
         clip.update(out, status="done", version=clip.get("version", 0) + 1, error=None)
         post = {k: clip[k] for k in ("title", "description", "hashtags", "hook", "start", "end", "score")}
+        if "visual" in clip:
+            post["visual"] = clip["visual"]
         (d / "clips" / f"{clip['id']}.json").write_text(json.dumps(post, indent=1), encoding="utf-8")
         if clip["version"] == 1:
             clip.setdefault("made_at", time.time())
@@ -579,6 +612,7 @@ def _run_job(job):
         # the first finished clip without improving highlight selection. Caption cleanup still runs in
         # render_one; uploaded files and videos without usable YouTube captions keep local ASR.
         if clip["status"] != "error":
+            _attach_visual_evidence(job, clip)
             render_one(job, clip, words_now)
 
     cpus = os.cpu_count() or 4
@@ -711,6 +745,7 @@ def _worker(quick_only=False):
             else:
                 words = json.loads((Path(job["dir"]) / "words.json").read_text(encoding="utf-8"))
                 clip = next(c for c in job["clips"] if c["id"] == cid)
+                _attach_visual_evidence(job, clip)
                 render_one(job, clip, words)
         except Exception as e:  # noqa: BLE001
             (Path(job["dir"]) / "error.log").write_text(traceback.format_exc(), encoding="utf-8")
